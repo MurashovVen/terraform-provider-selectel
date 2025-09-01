@@ -6,8 +6,6 @@ import (
 	"net/http"
 )
 
-// todo testing pagination??
-
 type NetworkType string
 
 const (

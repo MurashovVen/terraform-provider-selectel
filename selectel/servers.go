@@ -99,7 +99,7 @@ func (pc *PartitionsConfig) CastToAPIPartitionsConfig(
 		pc.SoftRaidConfig = append(pc.SoftRaidConfig, &SoftRaidConfigItem{
 			Name:     raidName,
 			Level:    "raid1",
-			DiskType: localDrives.GetMaxPresentedType(),
+			DiskType: localDrives.GetDefaultType(),
 		})
 
 		for _, p := range defaultPartitions {
@@ -161,8 +161,6 @@ func (pc *PartitionsConfig) CastToAPIPartitionsConfig(
 
 		nextPriorityByDrive = make(map[string]int)
 	)
-
-	// todo ask raid0 vs raid1
 
 	// adding non base partitions, soft raids and filesystems
 
@@ -256,15 +254,28 @@ func (pc *PartitionsConfig) addDiskPartitionToAPIConfig(
 
 	// adding soft raid
 
-	srID, err := uuid.GenerateUUID()
-	if err != nil {
-		return fmt.Errorf("failed to generate uuid for soft_raid %s: %w", diskPartition.Mount, err)
-	}
+	fsPartitionDeviceID := ""
 
-	cfg[srID] = &serverslocal.PartitionConfigItem{
-		Type:    "soft_raid",
-		Members: members,
-		Level:   raidLevel,
+	switch {
+	case len(members) == 0:
+		return errors.New("can't find disk for " + diskPartition.Mount)
+
+	case len(members) == 1:
+		fsPartitionDeviceID = members[0]
+
+	default:
+		srID, err := uuid.GenerateUUID()
+		if err != nil {
+			return fmt.Errorf("failed to generate uuid for soft_raid %s: %w", diskPartition.Mount, err)
+		}
+
+		cfg[srID] = &serverslocal.PartitionConfigItem{
+			Type:    "soft_raid",
+			Members: members,
+			Level:   raidLevel,
+		}
+
+		fsPartitionDeviceID = srID
 	}
 
 	// adding filesystem
@@ -290,7 +301,7 @@ func (pc *PartitionsConfig) addDiskPartitionToAPIConfig(
 	cfg[id] = &serverslocal.PartitionConfigItem{
 		Type:   "filesystem",
 		FSType: fsType,
-		Device: srID,
+		Device: fsPartitionDeviceID,
 		Mount:  diskPartition.Mount,
 	}
 
@@ -528,9 +539,6 @@ func resourceServersServerV1GetFreePrivateIPs(
 			"can't find subnet %s for %s %s and network %s", subnetStr, objectLocation, locationID, nets[0].UUID,
 		))
 	}
-
-	// todo 3 ask
-	// is https://api.selectel.ru/servers/v2/network/ipam/local_subnet/b253c0ee-b072-4d4e-bec5-66c43f4e0ad4/local_ip check for reserved ips?
 
 	reservedIPs, _, err := cl.NetworkSubnetLocalReservedIPs(ctx, subnet.UUID)
 	if err != nil {

@@ -125,11 +125,10 @@ func Provider() *schema.Provider {
 			"selectel_mks_kube_versions_v1":             dataSourceMKSKubeVersionsV1(),
 			"selectel_mks_feature_gates_v1":             dataSourceMKSFeatureGatesV1(),
 			"selectel_mks_admission_controllers_v1":     dataSourceMKSAdmissionControllersV1(),
-			// todo approve logic
-			"selectel_servers_configuration_v1": dataSourceServersConfigurationV1(),
-			"selectel_servers_os_v1":            dataSourceServersOSV1(),
-			"selectel_servers_location_v1":      dataSourceServersLocationV1(),
-			"selectel_servers_public_subnet_v1": dataSourceServersPublicSubnetV1(),
+			"selectel_servers_configuration_v1":         dataSourceServersConfigurationV1(),
+			"selectel_servers_os_v1":                    dataSourceServersOSV1(),
+			"selectel_servers_location_v1":              dataSourceServersLocationV1(),
+			"selectel_servers_public_subnet_v1":         dataSourceServersPublicSubnetV1(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"selectel_vpc_floatingip_v2":                            resourceVPCFloatingIPV2(),

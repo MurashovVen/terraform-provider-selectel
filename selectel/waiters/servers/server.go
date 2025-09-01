@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+
 	"github.com/terraform-providers/terraform-provider-selectel/selectel/internal/api/servers"
 )
 
@@ -50,7 +51,7 @@ func WaitForServersServerV1RefusedToRenewState(
 	ctx context.Context, client *servers.ServiceClient, resourceID string, timeout time.Duration,
 ) error {
 	stateConf := &resource.StateChangeConf{
-		Pending: []string{ // todo ask 6
+		Pending: []string{
 			servers.ResourceDetailsStatePending,
 			servers.ResourceDetailsStateProcessing,
 			servers.ResourceDetailsStatePaid,

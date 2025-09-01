@@ -1,5 +1,9 @@
 package servers
 
+import (
+	"strings"
+)
+
 type (
 	LocalDrives map[string]*LocalDrive
 
@@ -14,24 +18,46 @@ type (
 	}
 )
 
-// todo ask 1 ok?
-func (ld LocalDrives) GetMaxPresentedType() string {
+func (ld LocalDrives) GetDefaultType() string {
 	var (
-		maxTypeCount = 0
-		maxType      = ""
-		typeCount    = make(map[string]int)
+		fastestDiskType string
+		fastestDiskSize int
 	)
-	for _, ldd := range ld {
-		cc := typeCount[ldd.Match.Type]
-		cc++
 
-		if cc > maxTypeCount {
-			maxTypeCount = cc
-			maxType = ldd.Match.Type
+	for _, localDrive := range ld {
+		switch {
+		case fastestDiskType == "":
+			fastestDiskType = localDrive.Match.Type
+			fastestDiskSize = localDrive.Match.Size
+
+		case computeLocalDriveSpeedRatio(localDrive.Match.Type) > computeLocalDriveSpeedRatio(fastestDiskType):
+			fastestDiskType = localDrive.Match.Type
+			fastestDiskSize = localDrive.Match.Size
+
+		case computeLocalDriveSpeedRatio(localDrive.Match.Type) == computeLocalDriveSpeedRatio(fastestDiskType) && localDrive.Match.Size > fastestDiskSize:
+			fastestDiskType = localDrive.Match.Type
+			fastestDiskSize = localDrive.Match.Size
 		}
 	}
 
-	return maxType
+	return fastestDiskType
+}
+
+func computeLocalDriveSpeedRatio(ldType string) int {
+	ldSpeed := 0
+	ldTypeLower := strings.ToLower(ldType)
+	switch {
+	case strings.Contains(ldTypeLower, "nvme"):
+		ldSpeed = 3
+
+	case strings.Contains(ldTypeLower, "ssd"):
+		ldSpeed = 2
+
+	case strings.Contains(ldTypeLower, "hdd"):
+		ldSpeed = 1
+	}
+
+	return ldSpeed
 }
 
 type OperatingSystem struct {
