@@ -8,5 +8,7 @@ import (
 func main() {
 	plugin.Serve(&plugin.ServeOpts{
 		ProviderFunc: selectel.Provider,
+		ProviderAddr: "registry.terraform.io/hashicorp/selectel",
+		Debug:        true, // todo remove
 	})
 }
