@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/selectel/go-selvpcclient/v4/selvpcclient/resell/v2/servers"
 	"github.com/stretchr/testify/assert"
+
 	serverslocal "github.com/terraform-providers/terraform-provider-selectel/selectel/internal/api/servers"
 )
 

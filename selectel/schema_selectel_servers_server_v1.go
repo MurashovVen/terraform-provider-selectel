@@ -2,8 +2,6 @@ package selectel
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/terraform-providers/terraform-provider-selectel/selectel/internal/api/servers"
 )
 
 const (
@@ -17,7 +15,6 @@ const (
 	serversServerSchemaKeyPrivateSubnet      = "private_subnet"
 	serversServerSchemaKeyOSUserScript       = "user_script"
 	serversServerSchemaKeyOSHostName         = "os_host_name"
-	serversServerSchemaKeyLimitType          = "limit_type"
 	serversServerSchemaKeyOSSSHKey           = "ssh_key"
 	serversServerSchemaKeyOSSSHKeyName       = "ssh_key_name"
 	serversServerSchemaKeyOSPartitionsConfig = "partitions_config"
@@ -145,14 +142,6 @@ func resourceServersServerV1Schema() map[string]*schema.Schema {
 		// optional misc
 		serversServerSchemaKeyIsServerChip: {
 			Type:     schema.TypeBool,
-			Optional: true,
-		},
-		serversServerSchemaKeyLimitType: {
-			Type: schema.TypeString,
-			ValidateFunc: validation.StringInSlice([]string{
-				servers.ServiceBillingLimitTypeSpeed,
-				servers.ServiceBillingLimitTypeTraffic,
-			}, false),
 			Optional: true,
 		},
 		serversServerSchemaKeyOSHostName: {

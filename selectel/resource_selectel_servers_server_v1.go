@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/terraform-providers/terraform-provider-selectel/selectel/internal/api/servers"
 	waiters "github.com/terraform-providers/terraform-provider-selectel/selectel/waiters/servers"
 )
@@ -93,8 +94,7 @@ func resourceServersServerV1Create(ctx context.Context, d *schema.ResourceData, 
 	var (
 		hostName = resourceServersServerV1GenerateHostNameIfNotPresented(d)
 
-		limitType, _ = d.Get(serversServerSchemaKeyLimitType).(string)
-		password, _  = d.Get(serversServerSchemaKeyOSPassword).(string)
+		password, _ = d.Get(serversServerSchemaKeyOSPassword).(string)
 
 		req = &servers.ServerBillingPostPayload{
 			ServiceUUID:      configurationID,
@@ -113,7 +113,6 @@ func resourceServersServerV1Create(ctx context.Context, d *schema.ResourceData, 
 			UserSSHKey:       sshKeyPK,
 			UserHostname:     hostName,
 			UserDesc:         hostName,
-			LimitType:        limitType,
 			Password:         password,
 			UserScript:       userScript,
 		}

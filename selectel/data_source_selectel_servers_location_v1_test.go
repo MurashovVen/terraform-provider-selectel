@@ -27,7 +27,7 @@ func TestAccServersLocationV1Basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckVPCV2ProjectExists("selectel_vpc_project_v2.project_tf_acc_test_1", &project),
 					testAccServersLocationV1Exists("data.selectel_servers_location_v1.location_tf_acc_test_1", locationName),
-					resource.TestCheckResourceAttr("data.selectel_servers_location_v1.location_tf_acc_test_1", "locations[0].name", locationName),
+					resource.TestCheckResourceAttr("data.selectel_servers_location_v1.location_tf_acc_test_1", "locations.0.name", locationName),
 				),
 			},
 		},
@@ -69,8 +69,8 @@ resource "selectel_vpc_project_v2" "project_tf_acc_test_1" {
 }
 
 data "selectel_servers_location_v1" "location_tf_acc_test_1" {
-  project_id = "${selectel_vpc_project_v2.project_tf_acc_test_1.id"
-    filter {
+  project_id = "${selectel_vpc_project_v2.project_tf_acc_test_1.id}"
+  filter {
     name = "%s"
   }
 }

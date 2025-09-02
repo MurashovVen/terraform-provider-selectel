@@ -15,7 +15,7 @@ func TestAccServersOSV1Basic(t *testing.T) {
 	var project projects.Project
 
 	projectName := acctest.RandomWithPrefix("tf-acc")
-	osName := "ubuntu"
+	osName := "Ubuntu"
 	osVersion := "2204"
 
 	resource.Test(t, resource.TestCase{
@@ -28,8 +28,8 @@ func TestAccServersOSV1Basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckVPCV2ProjectExists("selectel_vpc_project_v2.project_tf_acc_test_1", &project),
 					testAccServersOSV1Exists("data.selectel_servers_os_v1.os_tf_acc_test_1", osName, osVersion),
-					resource.TestCheckResourceAttr("data.selectel_servers_os_v1.os_tf_acc_test_1", "os[%s].name", osName),
-					resource.TestCheckResourceAttr("data.selectel_servers_os_v1.os_tf_acc_test_1", "os[%s].name", osVersion),
+					resource.TestCheckResourceAttr("data.selectel_servers_os_v1.os_tf_acc_test_1", "os.0.name", osName),
+					resource.TestCheckResourceAttr("data.selectel_servers_os_v1.os_tf_acc_test_1", "os.0.version", osVersion),
 				),
 			},
 		},

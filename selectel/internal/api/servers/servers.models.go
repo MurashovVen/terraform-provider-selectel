@@ -113,7 +113,6 @@ type (
 		UserSSHKey       string           `json:"user_ssh_key,omitempty"`
 		UserHostname     string           `json:"userhostname"`
 		UserDesc         string           `json:"user_desc"`
-		LimitType        string           `json:"limit_type,omitempty"`
 		Password         string           `json:"password,omitempty"`
 		UserScript       string           `json:"user_script,omitempty"`
 	}
