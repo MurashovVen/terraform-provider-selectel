@@ -6,10 +6,10 @@ import (
 	"strings"
 )
 
-// roundTripFunc lets us use a function as an http.RoundTripper.
-type roundTripFunc func(req *http.Request) (*http.Response, error)
+// RoundTripFunc lets us use a function as an http.RoundTripper.
+type RoundTripFunc func(req *http.Request) (*http.Response, error)
 
-func (f roundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
+func (f RoundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
 	return f(req)
 }
 
@@ -22,8 +22,8 @@ func NewFakeResponse(status int, body string) *http.Response {
 }
 
 // NewFakeTransport returns a fake transport with the given response and error.
-func NewFakeTransport(resp *http.Response, err error) roundTripFunc {
-	return roundTripFunc(func(_ *http.Request) (*http.Response, error) {
+func NewFakeTransport(resp *http.Response, err error) RoundTripFunc {
+	return RoundTripFunc(func(_ *http.Request) (*http.Response, error) {
 		return resp, err
 	})
 }

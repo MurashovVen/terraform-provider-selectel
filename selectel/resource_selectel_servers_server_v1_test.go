@@ -3,13 +3,20 @@ package selectel
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/selectel/go-selvpcclient/v4/selvpcclient/resell/v2/projects"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/terraform-providers/terraform-provider-selectel/selectel/internal/api/servers"
+	"github.com/terraform-providers/terraform-provider-selectel/selectel/internal/httptest"
 )
 
 func TestAccServersServerV1Basic(t *testing.T) {
@@ -191,4 +198,345 @@ resource "selectel_servers_server_v1" "server_tf_acc_test_1" {
  }
 }
 `, projectName, osName, osVersion, locationName, cfgName, isServerChip, pricePlanName, osHostName, isServerChip, sshKey, osPassword, userScript)
+}
+
+func Test_resourceServersServerV1CreateValidatePreconditions(t *testing.T) {
+	const (
+		locationID      = "loc1"
+		pricePlanID     = "plan1"
+		configurationID = "conf1"
+		osID            = "os1"
+	)
+
+	defaultData := func() *serversServerV1CreateData {
+		return &serversServerV1CreateData{
+			server: &servers.Server{
+				Available: []*servers.ServerAvailable{
+					{
+						LocationID: locationID,
+						PlanCount: []*servers.ServerAvailablePricePlan{
+							{PlanUUID: pricePlanID, Count: 1},
+						},
+					},
+				},
+				PricePlanAvailable: []string{pricePlanID},
+				Tags:               []string{},
+			},
+			os: &servers.OperatingSystem{
+				UUID:            osID,
+				ScriptAllowed:   true,
+				IsSSHKeyAllowed: true,
+				Partitioning:    true,
+				TemplateVersion: "v2",
+				OSValue:         "linux",
+			},
+			billing: &servers.ServiceBilling{
+				HasEnoughBalance: true,
+			},
+			partitions: servers.PartitionsConfig{},
+		}
+	}
+
+	tests := []struct {
+		name          string
+		isServerChip  bool
+		needUserScrip bool
+		needSSHKey    bool
+		needPrivateIP bool
+		data          *serversServerV1CreateData
+		wantErr       string
+	}{
+		{
+			name: "Success",
+			data: defaultData(),
+		},
+		{
+			name: "LocationNotAvailable",
+			data: func() *serversServerV1CreateData {
+				d := defaultData()
+				d.server.Available = nil
+				return d
+			}(),
+			wantErr: "is not available for",
+		},
+		{
+			name: "PricePlanNotAvailableForLocation",
+			data: func() *serversServerV1CreateData {
+				d := defaultData()
+				d.server.PricePlanAvailable = nil
+				return d
+			}(),
+			wantErr: "price-plan plan1 is not available for",
+		},
+		{
+			name: "OSNotAvailable",
+			data: func() *serversServerV1CreateData {
+				d := defaultData()
+				d.os = nil
+				return d
+			}(),
+			wantErr: "is not available for",
+		},
+		{
+			name:          "UserScriptNotAllowed",
+			needUserScrip: true,
+			data: func() *serversServerV1CreateData {
+				d := defaultData()
+				d.os.ScriptAllowed = false
+				return d
+			}(),
+			wantErr: "does not allow scripts",
+		},
+		{
+			name:       "SSHKeyNotAllowed",
+			needSSHKey: true,
+			data: func() *serversServerV1CreateData {
+				d := defaultData()
+				d.os.IsSSHKeyAllowed = false
+				return d
+			}(),
+			wantErr: "does not allow SSH keys",
+		},
+		{
+			name: "PartitioningNotSupported",
+			data: func() *serversServerV1CreateData {
+				d := defaultData()
+				d.os.Partitioning = false
+				d.partitions = map[string]*servers.PartitionConfigItem{"a": {}}
+				return d
+			}(),
+			wantErr: "does not support partitions config",
+		},
+		{
+			name: "InsufficientBalance",
+			data: func() *serversServerV1CreateData {
+				d := defaultData()
+				d.billing.HasEnoughBalance = false
+				return d
+			}(),
+			wantErr: "insufficient balance",
+		},
+		{
+			name:          "PrivateIPNotSupportedByServer",
+			needPrivateIP: true,
+			data: func() *serversServerV1CreateData {
+				d := defaultData()
+				d.server.Tags = []string{"10GE_Internet"}
+				return d
+			}(),
+			wantErr: "does not support private network",
+		},
+		{
+			name:          "PrivateIPNotSupportedByOS",
+			needPrivateIP: true,
+			data: func() *serversServerV1CreateData {
+				d := defaultData()
+				d.os.TemplateVersion = "v1"
+				return d
+			}(),
+			wantErr: "does not support private network",
+		},
+		{
+			name: "PartitionsValidationFails",
+			data: func() *serversServerV1CreateData {
+				d := defaultData()
+				d.partitions = map[string]*servers.PartitionConfigItem{"a": {}}
+				return d
+			}(),
+			wantErr: "failed to validate partitions config",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			client := new(servers.ServiceClient)
+			client.HTTPClient = &http.Client{
+				Transport: httptest.RoundTripFunc(func(req *http.Request) (*http.Response, error) {
+					if strings.Contains(req.URL.Path, "validate") {
+						if tt.wantErr != "" && strings.Contains(tt.wantErr, "validate") {
+							return httptest.NewFakeResponse(http.StatusBadRequest, `{"error": "validation failed"}`), nil
+						}
+
+						return httptest.NewFakeResponse(http.StatusOK, `{"partitions_config": {}}`), nil
+					}
+
+					return httptest.NewFakeResponse(http.StatusNotFound, `{}`), nil
+				}),
+			}
+
+			diags := resourceServersServerV1CreateValidatePreconditions(
+				context.Background(), client, tt.data, locationID, pricePlanID, configurationID, osID,
+				tt.needUserScrip, tt.needSSHKey, tt.isServerChip, tt.needPrivateIP,
+			)
+
+			if tt.wantErr != "" {
+				assert.True(t, diags.HasError())
+				assert.Contains(t, diags[0].Summary, tt.wantErr)
+			} else {
+				assert.False(t, diags.HasError())
+			}
+		})
+	}
+}
+
+func Test_resourceServersServerV1UpdateValidatePreconditions(t *testing.T) {
+	const (
+		osID = "os1"
+	)
+
+	defaultOS := func() *servers.OperatingSystem {
+		return &servers.OperatingSystem{
+			UUID:            osID,
+			ScriptAllowed:   true,
+			IsSSHKeyAllowed: true,
+			Partitioning:    true,
+			TemplateVersion: "v2",
+			OSValue:         "linux",
+		}
+	}
+
+	tests := []struct {
+		name           string
+		os             *servers.OperatingSystem
+		partitions     servers.PartitionsConfig
+		needUserScript bool
+		needSSHKey     bool
+		changes        []string
+		wantErr        string
+	}{
+		{
+			name:    "SuccessOSIDChanged",
+			os:      defaultOS(),
+			changes: []string{serversServerSchemaKeyOSID},
+		},
+		{
+			name:    "SuccessOSHostNameChanged",
+			os:      defaultOS(),
+			changes: []string{serversServerSchemaKeyOSHostName},
+		},
+		{
+			name:       "SuccessOSSSHKeyChanged",
+			os:         defaultOS(),
+			needSSHKey: true,
+			changes:    []string{serversServerSchemaKeyOSSSHKey},
+		},
+		{
+			name:       "SuccessOSSSHKeyNameChanged",
+			os:         defaultOS(),
+			needSSHKey: true,
+			changes:    []string{serversServerSchemaKeyOSSSHKeyName},
+		},
+		{
+			name:    "SuccessOSPasswordChanged",
+			os:      defaultOS(),
+			changes: []string{serversServerSchemaKeyOSPassword},
+		},
+		{
+			name:       "SuccessOSPartitionsConfigChanged",
+			os:         defaultOS(),
+			partitions: map[string]*servers.PartitionConfigItem{},
+			changes:    []string{serversServerSchemaKeyOSHostName, serversServerSchemaKeyOSPartitionsConfig},
+		},
+		{
+			name:           "SuccessOSUserScriptChanged",
+			os:             defaultOS(),
+			needUserScript: true,
+			changes:        []string{serversServerSchemaKeyOSUserScript},
+		},
+		{
+			name:    "NoOSConfigChanged",
+			os:      defaultOS(),
+			changes: []string{},
+			wantErr: "can't update cause os configuration has not changed",
+		},
+		{
+			name:    "ProjectIDChanged",
+			os:      defaultOS(),
+			changes: []string{serversServerSchemaKeyOSHostName, serversServerSchemaKeyProjectID},
+			wantErr: "can't update case project ID has changed",
+		},
+		{
+			name:    "LocationIDChanged",
+			os:      defaultOS(),
+			changes: []string{serversServerSchemaKeyOSHostName, serversServerSchemaKeyLocationID},
+			wantErr: "can't update case location ID has changed",
+		},
+		{
+			name:    "ConfigurationIDChanged",
+			os:      defaultOS(),
+			changes: []string{serversServerSchemaKeyOSHostName, serversServerSchemaKeyConfigurationID},
+			wantErr: "can't update case configuration ID has changed",
+		},
+		{
+			name:    "PricePlanNameChanged",
+			os:      defaultOS(),
+			changes: []string{serversServerSchemaKeyOSHostName, serversServerSchemaKeyPricePlanName},
+			wantErr: "can't update case price plan ID has changed",
+		},
+		{
+			name:           "UserScriptNotAllowed",
+			os:             func() *servers.OperatingSystem { o := defaultOS(); o.ScriptAllowed = false; return o }(),
+			needUserScript: true,
+			changes:        []string{serversServerSchemaKeyOSUserScript},
+			wantErr:        "does not allow scripts",
+		},
+		{
+			name:       "SSHKeyNotAllowed",
+			os:         func() *servers.OperatingSystem { o := defaultOS(); o.IsSSHKeyAllowed = false; return o }(),
+			needSSHKey: true,
+			changes:    []string{serversServerSchemaKeyOSSSHKey},
+			wantErr:    "does not allow SSH keys",
+		},
+		{
+			name:       "PartitionsNotSupportedForWindows",
+			os:         func() *servers.OperatingSystem { o := defaultOS(); o.OSValue = "windows"; return o }(),
+			partitions: map[string]*servers.PartitionConfigItem{"a": {}},
+			changes:    []string{serversServerSchemaKeyOSHostName, serversServerSchemaKeyOSPartitionsConfig},
+			wantErr:    "does not support partitions config",
+		},
+		{
+			name:       "PartitionsValidationFails",
+			os:         defaultOS(),
+			partitions: map[string]*servers.PartitionConfigItem{"a": {}},
+			changes:    []string{serversServerSchemaKeyOSHostName, serversServerSchemaKeyOSPartitionsConfig},
+			wantErr:    "failed to validate partitions config",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			res := resourceServersServerV1()
+
+			initMap := map[string]interface{}{}
+			for _, key := range tt.changes {
+				initMap[key] = "changed"
+			}
+
+			d := schema.TestResourceDataRaw(t, res.Schema, initMap)
+
+			client := new(servers.ServiceClient)
+			client.HTTPClient = &http.Client{
+				Transport: httptest.RoundTripFunc(func(req *http.Request) (*http.Response, error) {
+					if strings.Contains(req.URL.Path, "validate") {
+						if tt.wantErr != "" && strings.Contains(tt.wantErr, "validate") {
+							return httptest.NewFakeResponse(http.StatusBadRequest, `{"error": "validation failed"}`), nil
+						}
+						return httptest.NewFakeResponse(http.StatusOK, `{"partitions_config": {}}`), nil
+					}
+					return httptest.NewFakeResponse(http.StatusNotFound, `{}`), nil
+				}),
+			}
+
+			diags := resourceServersServerV1UpdateValidatePreconditions(
+				context.Background(), d, client, tt.os, tt.partitions, tt.needUserScript, tt.needSSHKey,
+			)
+
+			if tt.wantErr != "" {
+				assert.True(t, diags.HasError())
+				assert.Contains(t, diags[0].Summary, tt.wantErr)
+			} else {
+				assert.False(t, diags.HasError())
+			}
+		})
+	}
 }
