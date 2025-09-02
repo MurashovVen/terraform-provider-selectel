@@ -164,7 +164,7 @@ func (pc *PartitionsConfig) CastToAPIPartitionsConfig(
 
 	// adding non base partitions, soft raids and filesystems
 
-	for _, diskPartition := range diskPartitions {
+	for _, diskPartition := range pc.DiskPartitions {
 		isBasePartition := slices.Contains([]string{
 			mountBaseSwap, mountBaseRoot, mountBaseBoot,
 		}, diskPartition.Mount)
@@ -183,7 +183,7 @@ func (pc *PartitionsConfig) CastToAPIPartitionsConfig(
 
 	// adding base partitions, soft raids and filesystems
 
-	for _, diskPartition := range pc.DiskPartitions {
+	for _, diskPartition := range diskPartitions {
 		err := pc.addDiskPartitionToAPIConfig(diskPartition, localDrives, nextPriorityByDrive, res)
 		if err != nil {
 			return nil, err
