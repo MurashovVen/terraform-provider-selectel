@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/terraform-providers/terraform-provider-selectel/selectel/internal/httptest"
 )
 
 func TestServiceClient_SSHKeys(t *testing.T) {
@@ -17,8 +19,8 @@ func TestServiceClient_SSHKeys(t *testing.T) {
 				"public_key": "ssh-rsa AAA..."
 			}]
 		}`
-		fakeResp := newFakeResponse(200, body) //nolint:bodyclose
-		fakeTransport := newFakeTransport(fakeResp, nil)
+		fakeResp := httptest.NewFakeResponse(200, body) //nolint:bodyclose
+		fakeTransport := httptest.NewFakeTransport(fakeResp, nil)
 		client := newFakeClient("http://fake", fakeTransport)
 
 		// Execute
@@ -40,8 +42,8 @@ func TestServiceClient_SSHKeys(t *testing.T) {
 	t.Run("InvalidJSON", func(t *testing.T) {
 		// Prepare
 		body := invalidJSONBody
-		fakeResp := newFakeResponse(200, body) //nolint:bodyclose
-		fakeTransport := newFakeTransport(fakeResp, nil)
+		fakeResp := httptest.NewFakeResponse(200, body) //nolint:bodyclose
+		fakeTransport := httptest.NewFakeTransport(fakeResp, nil)
 		client := newFakeClient("http://fake", fakeTransport)
 
 		// Execute
@@ -57,8 +59,8 @@ func TestServiceClient_SSHKeys(t *testing.T) {
 	t.Run("HTTPError", func(t *testing.T) {
 		// Prepare
 		body := httpErrorBody
-		fakeResp := newFakeResponse(404, body) //nolint:bodyclose
-		fakeTransport := newFakeTransport(fakeResp, nil)
+		fakeResp := httptest.NewFakeResponse(404, body) //nolint:bodyclose
+		fakeTransport := httptest.NewFakeTransport(fakeResp, nil)
 		client := newFakeClient("http://fake", fakeTransport)
 
 		// Execute
@@ -74,7 +76,7 @@ func TestServiceClient_SSHKeys(t *testing.T) {
 
 	t.Run("DoRequestError", func(t *testing.T) {
 		// Prepare
-		fakeTransport := newFakeTransport(nil, errors.New("network failure"))
+		fakeTransport := httptest.NewFakeTransport(nil, errors.New("network failure"))
 		client := newFakeClient("http://fake", fakeTransport)
 
 		// Execute

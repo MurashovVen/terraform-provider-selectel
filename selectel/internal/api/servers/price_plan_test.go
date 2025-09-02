@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/terraform-providers/terraform-provider-selectel/selectel/internal/httptest"
 )
 
 func TestPricePlans_FindOneByName(t *testing.T) {
@@ -40,8 +42,8 @@ func TestServiceClient_PricePlans(t *testing.T) {
 				}
 			]
 		}`
-		fakeResp := newFakeResponse(200, body) //nolint:bodyclose
-		fakeTransport := newFakeTransport(fakeResp, nil)
+		fakeResp := httptest.NewFakeResponse(200, body) //nolint:bodyclose
+		fakeTransport := httptest.NewFakeTransport(fakeResp, nil)
 		client := newFakeClient("http://fake", fakeTransport)
 
 		// Execute
@@ -64,8 +66,8 @@ func TestServiceClient_PricePlans(t *testing.T) {
 				invalid json
 			]
 		}`
-		fakeResp := newFakeResponse(200, body) //nolint:bodyclose
-		fakeTransport := newFakeTransport(fakeResp, nil)
+		fakeResp := httptest.NewFakeResponse(200, body) //nolint:bodyclose
+		fakeTransport := httptest.NewFakeTransport(fakeResp, nil)
 		client := newFakeClient("http://fake", fakeTransport)
 
 		// Execute
@@ -81,8 +83,8 @@ func TestServiceClient_PricePlans(t *testing.T) {
 	t.Run("HTTPError", func(t *testing.T) {
 		// Prepare
 		body := `Not Found`
-		fakeResp := newFakeResponse(404, body) //nolint:bodyclose
-		fakeTransport := newFakeTransport(fakeResp, nil)
+		fakeResp := httptest.NewFakeResponse(404, body) //nolint:bodyclose
+		fakeTransport := httptest.NewFakeTransport(fakeResp, nil)
 		client := newFakeClient("http://fake", fakeTransport)
 
 		// Execute
@@ -99,7 +101,7 @@ func TestServiceClient_PricePlans(t *testing.T) {
 
 	t.Run("DoRequestError", func(t *testing.T) {
 		// Prepare
-		fakeTransport := newFakeTransport(nil, errors.New("network failure"))
+		fakeTransport := httptest.NewFakeTransport(nil, errors.New("network failure"))
 		client := newFakeClient("http://fake", fakeTransport)
 
 		// Execute

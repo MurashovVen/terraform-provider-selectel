@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/terraform-providers/terraform-provider-selectel/selectel/internal/httptest"
 )
 
 func TestServiceClient_Servers(t *testing.T) {
@@ -16,8 +18,8 @@ func TestServiceClient_Servers(t *testing.T) {
 				"name": "server1"
 			}]
 		}`
-		fakeResp := newFakeResponse(200, body) //nolint:bodyclose
-		fakeTransport := newFakeTransport(fakeResp, nil)
+		fakeResp := httptest.NewFakeResponse(200, body) //nolint:bodyclose
+		fakeTransport := httptest.NewFakeTransport(fakeResp, nil)
 		client := newFakeClient("http://fake", fakeTransport)
 
 		// Execute
@@ -36,8 +38,8 @@ func TestServiceClient_Servers(t *testing.T) {
 	t.Run("Server_InvalidJSON", func(t *testing.T) {
 		// Prepare
 		body := invalidJSONBody
-		fakeResp := newFakeResponse(200, body) //nolint:bodyclose
-		fakeTransport := newFakeTransport(fakeResp, nil)
+		fakeResp := httptest.NewFakeResponse(200, body) //nolint:bodyclose
+		fakeTransport := httptest.NewFakeTransport(fakeResp, nil)
 		client := newFakeClient("http://fake", fakeTransport)
 
 		// Execute
@@ -53,8 +55,8 @@ func TestServiceClient_Servers(t *testing.T) {
 	t.Run("Server_HTTPError", func(t *testing.T) {
 		// Prepare
 		body := httpErrorBody
-		fakeResp := newFakeResponse(404, body) //nolint:bodyclose
-		fakeTransport := newFakeTransport(fakeResp, nil)
+		fakeResp := httptest.NewFakeResponse(404, body) //nolint:bodyclose
+		fakeTransport := httptest.NewFakeTransport(fakeResp, nil)
 		client := newFakeClient("http://fake", fakeTransport)
 
 		// Execute
@@ -70,7 +72,7 @@ func TestServiceClient_Servers(t *testing.T) {
 
 	t.Run("Server_DoRequestError", func(t *testing.T) {
 		// Prepare
-		fakeTransport := newFakeTransport(nil, errors.New("network failure"))
+		fakeTransport := httptest.NewFakeTransport(nil, errors.New("network failure"))
 		client := newFakeClient("http://fake", fakeTransport)
 
 		// Execute
@@ -89,8 +91,8 @@ func TestServiceClient_Servers(t *testing.T) {
 				"name": "chip1"
 			}]
 		}`
-		fakeResp := newFakeResponse(200, body) //nolint:bodyclose
-		fakeTransport := newFakeTransport(fakeResp, nil)
+		fakeResp := httptest.NewFakeResponse(200, body) //nolint:bodyclose
+		fakeTransport := httptest.NewFakeTransport(fakeResp, nil)
 		client := newFakeClient("http://fake", fakeTransport)
 
 		// Execute
@@ -109,8 +111,8 @@ func TestServiceClient_Servers(t *testing.T) {
 	t.Run("ServerChip_InvalidJSON", func(t *testing.T) {
 		// Prepare
 		body := invalidJSONBody
-		fakeResp := newFakeResponse(200, body) //nolint:bodyclose
-		fakeTransport := newFakeTransport(fakeResp, nil)
+		fakeResp := httptest.NewFakeResponse(200, body) //nolint:bodyclose
+		fakeTransport := httptest.NewFakeTransport(fakeResp, nil)
 		client := newFakeClient("http://fake", fakeTransport)
 
 		// Execute
@@ -126,8 +128,8 @@ func TestServiceClient_Servers(t *testing.T) {
 	t.Run("ServerChip_HTTPError", func(t *testing.T) {
 		// Prepare
 		body := httpErrorBody
-		fakeResp := newFakeResponse(404, body) //nolint:bodyclose
-		fakeTransport := newFakeTransport(fakeResp, nil)
+		fakeResp := httptest.NewFakeResponse(404, body) //nolint:bodyclose
+		fakeTransport := httptest.NewFakeTransport(fakeResp, nil)
 		client := newFakeClient("http://fake", fakeTransport)
 
 		// Execute
@@ -143,7 +145,7 @@ func TestServiceClient_Servers(t *testing.T) {
 
 	t.Run("ServerChip_DoRequestError", func(t *testing.T) {
 		// Prepare
-		fakeTransport := newFakeTransport(nil, errors.New("network failure"))
+		fakeTransport := httptest.NewFakeTransport(nil, errors.New("network failure"))
 		client := newFakeClient("http://fake", fakeTransport)
 
 		// Execute
@@ -159,8 +161,8 @@ func TestServiceClient_Servers(t *testing.T) {
 func TestServiceClient_ServerByID(t *testing.T) {
 	t.Run("Server_Success", func(t *testing.T) {
 		body := `{"result": {"uuid": "123", "name": "server1"}}`
-		fakeResp := newFakeResponse(200, body) //nolint:bodyclose
-		client := newFakeClient("http://fake", newFakeTransport(fakeResp, nil))
+		fakeResp := httptest.NewFakeResponse(200, body) //nolint:bodyclose
+		client := newFakeClient("http://fake", httptest.NewFakeTransport(fakeResp, nil))
 
 		svr, respRes, err := client.ServerByID(context.Background(), "123", false)
 		require.NoError(t, err)
@@ -171,8 +173,8 @@ func TestServiceClient_ServerByID(t *testing.T) {
 
 	t.Run("Server_InvalidJSON", func(t *testing.T) {
 		body := invalidJSONBody
-		fakeResp := newFakeResponse(200, body) //nolint:bodyclose
-		client := newFakeClient("http://fake", newFakeTransport(fakeResp, nil))
+		fakeResp := httptest.NewFakeResponse(200, body) //nolint:bodyclose
+		client := newFakeClient("http://fake", httptest.NewFakeTransport(fakeResp, nil))
 
 		svr, respRes, err := client.ServerByID(context.Background(), "123", false)
 		require.Error(t, err)
@@ -183,8 +185,8 @@ func TestServiceClient_ServerByID(t *testing.T) {
 	t.Run("Server_HTTPError", func(t *testing.T) {
 		// Prepare
 		body := httpErrorBody
-		fakeResp := newFakeResponse(404, body) //nolint:bodyclose
-		fakeTransport := newFakeTransport(fakeResp, nil)
+		fakeResp := httptest.NewFakeResponse(404, body) //nolint:bodyclose
+		fakeTransport := httptest.NewFakeTransport(fakeResp, nil)
 		client := newFakeClient("http://fake", fakeTransport)
 
 		// Execute
@@ -199,7 +201,7 @@ func TestServiceClient_ServerByID(t *testing.T) {
 	})
 
 	t.Run("Server_DoRequestError", func(t *testing.T) {
-		client := newFakeClient("http://fake", newFakeTransport(nil, errors.New("network failure")))
+		client := newFakeClient("http://fake", httptest.NewFakeTransport(nil, errors.New("network failure")))
 
 		svr, respRes, err := client.ServerByID(context.Background(), "123", false)
 		require.Error(t, err)
@@ -209,8 +211,8 @@ func TestServiceClient_ServerByID(t *testing.T) {
 
 	t.Run("ServerChip_Success", func(t *testing.T) {
 		body := `{"result": {"uuid": "chipid", "name": "chip1"}}`
-		fakeResp := newFakeResponse(200, body) //nolint:bodyclose
-		client := newFakeClient("http://fake", newFakeTransport(fakeResp, nil))
+		fakeResp := httptest.NewFakeResponse(200, body) //nolint:bodyclose
+		client := newFakeClient("http://fake", httptest.NewFakeTransport(fakeResp, nil))
 
 		svr, respRes, err := client.ServerByID(context.Background(), "chipid", true)
 		require.NoError(t, err)
@@ -221,8 +223,8 @@ func TestServiceClient_ServerByID(t *testing.T) {
 
 	t.Run("ServerChip_InvalidJSON", func(t *testing.T) {
 		body := invalidJSONBody
-		fakeResp := newFakeResponse(200, body) //nolint:bodyclose
-		client := newFakeClient("http://fake", newFakeTransport(fakeResp, nil))
+		fakeResp := httptest.NewFakeResponse(200, body) //nolint:bodyclose
+		client := newFakeClient("http://fake", httptest.NewFakeTransport(fakeResp, nil))
 
 		svr, respRes, err := client.ServerByID(context.Background(), "chipid", true)
 		require.Error(t, err)
@@ -233,8 +235,8 @@ func TestServiceClient_ServerByID(t *testing.T) {
 	t.Run("ServerChip_HTTPError", func(t *testing.T) {
 		// Prepare
 		body := httpErrorBody
-		fakeResp := newFakeResponse(404, body) //nolint:bodyclose
-		fakeTransport := newFakeTransport(fakeResp, nil)
+		fakeResp := httptest.NewFakeResponse(404, body) //nolint:bodyclose
+		fakeTransport := httptest.NewFakeTransport(fakeResp, nil)
 		client := newFakeClient("http://fake", fakeTransport)
 
 		// Execute
@@ -249,7 +251,7 @@ func TestServiceClient_ServerByID(t *testing.T) {
 	})
 
 	t.Run("ServerChip_DoRequestError", func(t *testing.T) {
-		client := newFakeClient("http://fake", newFakeTransport(nil, errors.New("network failure")))
+		client := newFakeClient("http://fake", httptest.NewFakeTransport(nil, errors.New("network failure")))
 
 		svr, respRes, err := client.ServerByID(context.Background(), "chipid", true)
 		require.Error(t, err)
@@ -261,8 +263,8 @@ func TestServiceClient_ServerByID(t *testing.T) {
 func TestServiceClient_ServerCalculateBilling(t *testing.T) {
 	t.Run("Server_Success", func(t *testing.T) {
 		body := `{"result": {"has_enough_balance": true}}`
-		fakeResp := newFakeResponse(200, body) //nolint:bodyclose
-		client := newFakeClient("http://fake", newFakeTransport(fakeResp, nil))
+		fakeResp := httptest.NewFakeResponse(200, body) //nolint:bodyclose
+		client := newFakeClient("http://fake", httptest.NewFakeTransport(fakeResp, nil))
 
 		billing, respRes, err := client.ServerCalculateBilling(context.Background(), "sid", "locid", "planid", "main", false)
 		require.NoError(t, err)
@@ -272,8 +274,8 @@ func TestServiceClient_ServerCalculateBilling(t *testing.T) {
 
 	t.Run("Server_InvalidJSON", func(t *testing.T) {
 		body := invalidJSONBody
-		fakeResp := newFakeResponse(200, body) //nolint:bodyclose
-		client := newFakeClient("http://fake", newFakeTransport(fakeResp, nil))
+		fakeResp := httptest.NewFakeResponse(200, body) //nolint:bodyclose
+		client := newFakeClient("http://fake", httptest.NewFakeTransport(fakeResp, nil))
 
 		billing, respRes, err := client.ServerCalculateBilling(context.Background(), "sid", "locid", "planid", "main", false)
 		require.Error(t, err)
@@ -284,8 +286,8 @@ func TestServiceClient_ServerCalculateBilling(t *testing.T) {
 	t.Run("Server_HTTPError", func(t *testing.T) {
 		// Prepare
 		body := httpErrorBody
-		fakeResp := newFakeResponse(404, body) //nolint:bodyclose
-		fakeTransport := newFakeTransport(fakeResp, nil)
+		fakeResp := httptest.NewFakeResponse(404, body) //nolint:bodyclose
+		fakeTransport := httptest.NewFakeTransport(fakeResp, nil)
 		client := newFakeClient("http://fake", fakeTransport)
 
 		// Execute
@@ -300,7 +302,7 @@ func TestServiceClient_ServerCalculateBilling(t *testing.T) {
 	})
 
 	t.Run("Server_DoRequestError", func(t *testing.T) {
-		client := newFakeClient("http://fake", newFakeTransport(nil, errors.New("network failure")))
+		client := newFakeClient("http://fake", httptest.NewFakeTransport(nil, errors.New("network failure")))
 
 		billing, respRes, err := client.ServerCalculateBilling(context.Background(), "sid", "locid", "planid", "main", false)
 		require.Error(t, err)
@@ -310,8 +312,8 @@ func TestServiceClient_ServerCalculateBilling(t *testing.T) {
 
 	t.Run("ServerChip_Success", func(t *testing.T) {
 		body := `{"result": {"has_enough_balance": false}}`
-		fakeResp := newFakeResponse(200, body) //nolint:bodyclose
-		client := newFakeClient("http://fake", newFakeTransport(fakeResp, nil))
+		fakeResp := httptest.NewFakeResponse(200, body) //nolint:bodyclose
+		client := newFakeClient("http://fake", httptest.NewFakeTransport(fakeResp, nil))
 
 		billing, respRes, err := client.ServerCalculateBilling(context.Background(), "sid", "locid", "planid", "main", true)
 		require.NoError(t, err)
@@ -321,8 +323,8 @@ func TestServiceClient_ServerCalculateBilling(t *testing.T) {
 
 	t.Run("ServerChip_InvalidJSON", func(t *testing.T) {
 		body := invalidJSONBody
-		fakeResp := newFakeResponse(200, body) //nolint:bodyclose
-		client := newFakeClient("http://fake", newFakeTransport(fakeResp, nil))
+		fakeResp := httptest.NewFakeResponse(200, body) //nolint:bodyclose
+		client := newFakeClient("http://fake", httptest.NewFakeTransport(fakeResp, nil))
 
 		billing, respRes, err := client.ServerCalculateBilling(context.Background(), "sid", "locid", "planid", "main", true)
 		require.Error(t, err)
@@ -333,8 +335,8 @@ func TestServiceClient_ServerCalculateBilling(t *testing.T) {
 	t.Run("ServerChip_HTTPError", func(t *testing.T) {
 		// Prepare
 		body := httpErrorBody
-		fakeResp := newFakeResponse(404, body) //nolint:bodyclose
-		fakeTransport := newFakeTransport(fakeResp, nil)
+		fakeResp := httptest.NewFakeResponse(404, body) //nolint:bodyclose
+		fakeTransport := httptest.NewFakeTransport(fakeResp, nil)
 		client := newFakeClient("http://fake", fakeTransport)
 
 		// Execute
@@ -349,7 +351,7 @@ func TestServiceClient_ServerCalculateBilling(t *testing.T) {
 	})
 
 	t.Run("ServerChip_DoRequestError", func(t *testing.T) {
-		client := newFakeClient("http://fake", newFakeTransport(nil, errors.New("network failure")))
+		client := newFakeClient("http://fake", httptest.NewFakeTransport(nil, errors.New("network failure")))
 
 		billing, respRes, err := client.ServerCalculateBilling(context.Background(), "sid", "locid", "planid", "main", true)
 		require.Error(t, err)
@@ -361,8 +363,8 @@ func TestServiceClient_ServerCalculateBilling(t *testing.T) {
 func TestServiceClient_ServerBilling(t *testing.T) {
 	t.Run("Server_Success", func(t *testing.T) {
 		body := `{"result": [{"uuid": "some-uuid"}]}`
-		fakeResp := newFakeResponse(200, body) //nolint:bodyclose
-		client := newFakeClient("http://fake", newFakeTransport(fakeResp, nil))
+		fakeResp := httptest.NewFakeResponse(200, body) //nolint:bodyclose
+		client := newFakeClient("http://fake", httptest.NewFakeTransport(fakeResp, nil))
 
 		req := &ServerBillingPostPayload{
 			LocationUUID:  "locid",
@@ -379,8 +381,8 @@ func TestServiceClient_ServerBilling(t *testing.T) {
 
 	t.Run("Server_InvalidJSON", func(t *testing.T) {
 		body := invalidJSONBody
-		fakeResp := newFakeResponse(200, body) //nolint:bodyclose
-		client := newFakeClient("http://fake", newFakeTransport(fakeResp, nil))
+		fakeResp := httptest.NewFakeResponse(200, body) //nolint:bodyclose
+		client := newFakeClient("http://fake", httptest.NewFakeTransport(fakeResp, nil))
 
 		req := &ServerBillingPostPayload{
 			LocationUUID:  "locid",
@@ -398,8 +400,8 @@ func TestServiceClient_ServerBilling(t *testing.T) {
 	t.Run("Server_HTTPError", func(t *testing.T) {
 		// Prepare
 		body := httpErrorBody
-		fakeResp := newFakeResponse(404, body) //nolint:bodyclose
-		fakeTransport := newFakeTransport(fakeResp, nil)
+		fakeResp := httptest.NewFakeResponse(404, body) //nolint:bodyclose
+		fakeTransport := httptest.NewFakeTransport(fakeResp, nil)
 		client := newFakeClient("http://fake", fakeTransport)
 
 		req := &ServerBillingPostPayload{
@@ -421,7 +423,7 @@ func TestServiceClient_ServerBilling(t *testing.T) {
 	})
 
 	t.Run("Server_DoRequestError", func(t *testing.T) {
-		client := newFakeClient("http://fake", newFakeTransport(nil, errors.New("network failure")))
+		client := newFakeClient("http://fake", httptest.NewFakeTransport(nil, errors.New("network failure")))
 
 		req := &ServerBillingPostPayload{
 			LocationUUID:  "locid",
@@ -438,8 +440,8 @@ func TestServiceClient_ServerBilling(t *testing.T) {
 
 	t.Run("ServerChip_Success", func(t *testing.T) {
 		body := `{"result": [{"uuid": "some-uuid"}]}`
-		fakeResp := newFakeResponse(200, body) //nolint:bodyclose
-		client := newFakeClient("http://fake", newFakeTransport(fakeResp, nil))
+		fakeResp := httptest.NewFakeResponse(200, body) //nolint:bodyclose
+		client := newFakeClient("http://fake", httptest.NewFakeTransport(fakeResp, nil))
 
 		req := &ServerBillingPostPayload{
 			LocationUUID:  "locid",
@@ -456,8 +458,8 @@ func TestServiceClient_ServerBilling(t *testing.T) {
 
 	t.Run("ServerChip_InvalidJSON", func(t *testing.T) {
 		body := invalidJSONBody
-		fakeResp := newFakeResponse(200, body) //nolint:bodyclose
-		client := newFakeClient("http://fake", newFakeTransport(fakeResp, nil))
+		fakeResp := httptest.NewFakeResponse(200, body) //nolint:bodyclose
+		client := newFakeClient("http://fake", httptest.NewFakeTransport(fakeResp, nil))
 
 		req := &ServerBillingPostPayload{
 			LocationUUID:  "locid",
@@ -475,8 +477,8 @@ func TestServiceClient_ServerBilling(t *testing.T) {
 	t.Run("ServerChip_HTTPError", func(t *testing.T) {
 		// Prepare
 		body := httpErrorBody
-		fakeResp := newFakeResponse(404, body) //nolint:bodyclose
-		fakeTransport := newFakeTransport(fakeResp, nil)
+		fakeResp := httptest.NewFakeResponse(404, body) //nolint:bodyclose
+		fakeTransport := httptest.NewFakeTransport(fakeResp, nil)
 		client := newFakeClient("http://fake", fakeTransport)
 
 		req := &ServerBillingPostPayload{
@@ -498,7 +500,7 @@ func TestServiceClient_ServerBilling(t *testing.T) {
 	})
 
 	t.Run("ServerChip_DoRequestError", func(t *testing.T) {
-		client := newFakeClient("http://fake", newFakeTransport(nil, errors.New("network failure")))
+		client := newFakeClient("http://fake", httptest.NewFakeTransport(nil, errors.New("network failure")))
 
 		req := &ServerBillingPostPayload{
 			LocationUUID:  "locid",
@@ -517,8 +519,8 @@ func TestServiceClient_ServerBilling(t *testing.T) {
 func TestServiceClient_ResourceDetails(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		body := `{"result": {"uuid": "some-uuid", "state": "some-state"}}`
-		fakeResp := newFakeResponse(200, body) //nolint:bodyclose
-		client := newFakeClient("http://fake", newFakeTransport(fakeResp, nil))
+		fakeResp := httptest.NewFakeResponse(200, body) //nolint:bodyclose
+		client := newFakeClient("http://fake", httptest.NewFakeTransport(fakeResp, nil))
 
 		details, respRes, err := client.ResourceDetails(context.Background(), "some-uuid")
 		require.NoError(t, err)
@@ -531,8 +533,8 @@ func TestServiceClient_ResourceDetails(t *testing.T) {
 
 	t.Run("InvalidJSON", func(t *testing.T) {
 		body := invalidJSONBody
-		fakeResp := newFakeResponse(200, body) //nolint:bodyclose
-		client := newFakeClient("http://fake", newFakeTransport(fakeResp, nil))
+		fakeResp := httptest.NewFakeResponse(200, body) //nolint:bodyclose
+		client := newFakeClient("http://fake", httptest.NewFakeTransport(fakeResp, nil))
 
 		details, respRes, err := client.ResourceDetails(context.Background(), "resid")
 		require.Error(t, err)
@@ -543,8 +545,8 @@ func TestServiceClient_ResourceDetails(t *testing.T) {
 	t.Run("HTTPError", func(t *testing.T) {
 		// Prepare
 		body := httpErrorBody
-		fakeResp := newFakeResponse(404, body) //nolint:bodyclose
-		fakeTransport := newFakeTransport(fakeResp, nil)
+		fakeResp := httptest.NewFakeResponse(404, body) //nolint:bodyclose
+		fakeTransport := httptest.NewFakeTransport(fakeResp, nil)
 		client := newFakeClient("http://fake", fakeTransport)
 
 		// Execute
@@ -559,7 +561,7 @@ func TestServiceClient_ResourceDetails(t *testing.T) {
 	})
 
 	t.Run("DoRequestError", func(t *testing.T) {
-		client := newFakeClient("http://fake", newFakeTransport(nil, errors.New("network failure")))
+		client := newFakeClient("http://fake", httptest.NewFakeTransport(nil, errors.New("network failure")))
 
 		details, respRes, err := client.ResourceDetails(context.Background(), "resid")
 		require.Error(t, err)
@@ -572,8 +574,8 @@ func TestServiceClient_DeleteResource(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		// Prepare
 		body := `{"result": {}}`
-		fakeResp := newFakeResponse(200, body) //nolint:bodyclose
-		client := newFakeClient("http://fake", newFakeTransport(fakeResp, nil))
+		fakeResp := httptest.NewFakeResponse(200, body) //nolint:bodyclose
+		client := newFakeClient("http://fake", httptest.NewFakeTransport(fakeResp, nil))
 
 		// Execute
 		respRes, err := client.DeleteResource(context.Background(), "resourceid")
@@ -587,8 +589,8 @@ func TestServiceClient_DeleteResource(t *testing.T) {
 	t.Run("HTTPError", func(t *testing.T) {
 		// Prepare
 		body := httpErrorBody
-		fakeResp := newFakeResponse(404, body) //nolint:bodyclose
-		fakeTransport := newFakeTransport(fakeResp, nil)
+		fakeResp := httptest.NewFakeResponse(404, body) //nolint:bodyclose
+		fakeTransport := httptest.NewFakeTransport(fakeResp, nil)
 		client := newFakeClient("http://fake", fakeTransport)
 
 		// Execute
@@ -603,7 +605,7 @@ func TestServiceClient_DeleteResource(t *testing.T) {
 
 	t.Run("DoRequestError", func(t *testing.T) {
 		// Prepare
-		fakeTransport := newFakeTransport(nil, errors.New("network failure"))
+		fakeTransport := httptest.NewFakeTransport(nil, errors.New("network failure"))
 		client := newFakeClient("http://fake", fakeTransport)
 
 		// Execute

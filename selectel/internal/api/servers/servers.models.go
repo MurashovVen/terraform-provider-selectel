@@ -92,7 +92,6 @@ type ServiceBilling struct {
 const (
 	ServiceBillingPayCurrencyBonus = "bonus"
 	ServiceBillingPayCurrencyMain  = "main"
-	ServiceBillingPayCurrencyVKRub = "vk_rub"
 )
 
 type (
@@ -120,11 +119,6 @@ type (
 	ServerBillingPostResult struct {
 		UUID string `json:"uuid"`
 	}
-)
-
-const (
-	ServiceBillingLimitTypeSpeed   = "speed"
-	ServiceBillingLimitTypeTraffic = "traffic"
 )
 
 type ResourceDetails struct {
