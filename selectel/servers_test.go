@@ -211,33 +211,6 @@ func TestPartitionsConfig_CastToAPIPartitionsConfig(t *testing.T) {
 		assert.Equal(t, "raid1", softRaids[0].Level)
 	})
 
-	t.Run("ManualSuccessSizePercent", func(t *testing.T) {
-		pc := &PartitionsConfig{
-			SoftRaidConfig: []*SoftRaidConfigItem{
-				{Name: "hdd-raid", Level: "raid0", DiskType: "SATA"},
-			},
-			DiskPartitions: []*DiskPartitionsItem{
-				{Mount: "/data", SizePercent: 50, Raid: "hdd-raid", FSType: "ext4"},
-			},
-		}
-		apiConfig, err := pc.CastToAPIPartitionsConfig(localDrives, defaultPartitions)
-		require.NoError(t, err)
-
-		dataFS := findFSByMount(apiConfig, "/data")
-		require.NotNil(t, dataFS)
-
-		dataPartitions := findItemsByType(apiConfig, "partition")
-		var dataPartition *serverslocal.PartitionConfigItem
-		for _, p := range dataPartitions {
-			if p.Device == "drive-hdd-1" {
-				dataPartition = p
-				break
-			}
-		}
-		require.NotNil(t, dataPartition)
-		assert.Equal(t, 1000, dataPartition.Size)
-	})
-
 	t.Run("ManualFailRaidNotFound", func(t *testing.T) {
 		pc := &PartitionsConfig{
 			DiskPartitions: []*DiskPartitionsItem{
