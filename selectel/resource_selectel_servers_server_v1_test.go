@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/selectel/go-selvpcclient/v4/selvpcclient/resell/v2/projects"
 	"github.com/stretchr/testify/assert"
-
 	"github.com/terraform-providers/terraform-provider-selectel/selectel/internal/api/servers"
 	"github.com/terraform-providers/terraform-provider-selectel/selectel/internal/httptest"
 )
@@ -303,6 +302,7 @@ func Test_resourceServersServerV1CreateValidatePreconditions(t *testing.T) {
 				d := defaultData()
 				d.os.Partitioning = false
 				d.partitions = map[string]*servers.PartitionConfigItem{"a": {}}
+
 				return d
 			}(),
 			wantErr: "does not support partitions config",
@@ -521,8 +521,10 @@ func Test_resourceServersServerV1UpdateValidatePreconditions(t *testing.T) {
 						if tt.wantErr != "" && strings.Contains(tt.wantErr, "validate") {
 							return httptest.NewFakeResponse(http.StatusBadRequest, `{"error": "validation failed"}`), nil
 						}
+
 						return httptest.NewFakeResponse(http.StatusOK, `{"partitions_config": {}}`), nil
 					}
+
 					return httptest.NewFakeResponse(http.StatusNotFound, `{}`), nil
 				}),
 			}

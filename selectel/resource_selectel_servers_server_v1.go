@@ -52,14 +52,15 @@ func resourceServersServerV1Create(ctx context.Context, d *schema.ResourceData, 
 		pricePlanName   = d.Get(serversServerSchemaKeyPricePlanName).(string)
 		sshKeyName, _   = d.Get(serversServerSchemaKeyOSSSHKeyName).(string)
 
-		isServerChip, _   = d.Get(serversServerSchemaKeyIsServerChip).(bool)
-		publicSubnetID, _ = d.Get(serversServerSchemaKeyPublicSubnetID).(string)
-		privateSubnet, _  = d.Get(serversServerSchemaKeyPrivateSubnet).(string)
+		isServerChip, _           = d.Get(serversServerSchemaKeyIsServerChip).(bool)
+		publicSubnetID, _         = d.Get(serversServerSchemaKeyPublicSubnetID).(string)
+		privateSubnet, _          = d.Get(serversServerSchemaKeyPrivateSubnet).(string)
+		forceDefaultPartitions, _ = d.Get(serversServerSchemaKeyDefaultPartitionsForceUse).(bool)
 	)
 
 	data, diagErr := resourceServersServerV1CreateLoadData(
 		ctx, dsClient, locationID, osID, configurationID, publicSubnetID, privateSubnet,
-		sshKeyName, pricePlanName, isServerChip, partitionsConfigFromSchema,
+		sshKeyName, pricePlanName, isServerChip, forceDefaultPartitions, partitionsConfigFromSchema,
 	)
 	if diagErr != nil {
 		return diagErr
@@ -169,7 +170,8 @@ type serversServerV1CreateData struct {
 
 func resourceServersServerV1CreateLoadData(
 	ctx context.Context, dsClient *servers.ServiceClient,
-	locationID, osID, configurationID, publicSubnetID, privateSubnet, sshKeyName, pricePlanName string, isServerChip bool,
+	locationID, osID, configurationID, publicSubnetID, privateSubnet, sshKeyName, pricePlanName string,
+	isServerChip, forceDefaultPartitions bool,
 	partitionsConfigFromSchema *PartitionsConfig,
 ) (*serversServerV1CreateData, diag.Diagnostics) {
 	operatingSystems, _, err := dsClient.OperatingSystems(ctx, servers.OperatingSystemsQuery{
@@ -196,8 +198,8 @@ func resourceServersServerV1CreateLoadData(
 	}
 
 	var partitionsConfig servers.PartitionsConfig
-	if !partitionsConfigFromSchema.IsEmpty() || os.Partitioning {
-		if !os.Partitioning { // in case of configured partitions
+	if !partitionsConfigFromSchema.IsEmpty() || os.Partitioning || forceDefaultPartitions {
+		if !os.Partitioning { // in case of configured partitions or forced default partitions
 			return nil, diag.FromErr(fmt.Errorf(
 				"%s %s does not support partitions config", objectOS, os.OSValue,
 			))
@@ -210,7 +212,7 @@ func resourceServersServerV1CreateLoadData(
 			))
 		}
 
-		partitionsConfig, err = partitionsConfigFromSchema.CastToAPIPartitionsConfig(localDrives, os.DefaultPartitions)
+		partitionsConfig, err = partitionsConfigFromSchema.CastToAPIPartitionsConfig(localDrives, os.DefaultPartitions, forceDefaultPartitions)
 		if err != nil {
 			return nil, diag.FromErr(fmt.Errorf(
 				"failed to read partitions config input: %w", err,
@@ -423,6 +425,7 @@ func resourceServersServerV1Read(ctx context.Context, d *schema.ResourceData, me
 	_ = d.Set("os_host_name", resourceOS.UserHostName)
 	_ = d.Set("user_script", resourceOS.UserScript)
 	_ = d.Set("os_password", resourceOS.Password)
+	_ = d.Set("ssh_key", resourceOS.UserSSHKey)
 
 	operatingSystems, _, err := dsClient.OperatingSystems(ctx, servers.OperatingSystemsQuery{
 		LocationID: rd.LocationUUID,
@@ -440,8 +443,6 @@ func resourceServersServerV1Read(ctx context.Context, d *schema.ResourceData, me
 	}
 
 	_ = d.Set("os_id", os.UUID)
-
-	// todo think about ssh key
 
 	return nil
 }
@@ -479,13 +480,14 @@ func resourceServersServerV1Update(ctx context.Context, d *schema.ResourceData, 
 	}
 
 	var (
-		locationID      = d.Get(serversServerSchemaKeyLocationID).(string)
-		configurationID = d.Get(serversServerSchemaKeyConfigurationID).(string)
-		osID            = d.Get(serversServerSchemaKeyOSID).(string)
-		sshKeyName, _   = d.Get(serversServerSchemaKeyOSSSHKeyName).(string)
+		locationID                = d.Get(serversServerSchemaKeyLocationID).(string)
+		configurationID           = d.Get(serversServerSchemaKeyConfigurationID).(string)
+		osID                      = d.Get(serversServerSchemaKeyOSID).(string)
+		sshKeyName, _             = d.Get(serversServerSchemaKeyOSSSHKeyName).(string)
+		forceDefaultPartitions, _ = d.Get(serversServerSchemaKeyDefaultPartitionsForceUse).(bool)
 	)
 
-	data, diagErr := resourceServersServerV1UpdateLoadData(ctx, dsClient, d, locationID, osID, configurationID, sshKeyName)
+	data, diagErr := resourceServersServerV1UpdateLoadData(ctx, dsClient, d, locationID, osID, configurationID, sshKeyName, forceDefaultPartitions)
 	if diagErr != nil {
 		return diagErr
 	}
@@ -557,6 +559,7 @@ type serversServerV1UpdateData struct {
 func resourceServersServerV1UpdateLoadData(
 	ctx context.Context, dsClient *servers.ServiceClient, d *schema.ResourceData,
 	locationID, osID, configurationID, sshKeyName string,
+	forceDefaultPartitions bool,
 ) (*serversServerV1UpdateData, diag.Diagnostics) {
 	operatingSystems, _, err := dsClient.OperatingSystems(ctx, servers.OperatingSystemsQuery{
 		LocationID: locationID,
@@ -580,8 +583,19 @@ func resourceServersServerV1UpdateLoadData(
 	}
 
 	var partitionsConfig servers.PartitionsConfig
-	if !partitionsConfigFromSchema.IsEmpty() || os.Partitioning {
-		if !os.Partitioning { // in case of configured partitions
+	switch {
+	case !d.HasChange(serversServerSchemaKeyOSPartitionsConfig) && partitionsConfigFromSchema.IsEmpty() && !forceDefaultPartitions: // in case of import and no changes
+		resourceOS, _, err := dsClient.OperatingSystemByResource(ctx, d.Id())
+		if err != nil {
+			return nil, diag.FromErr(fmt.Errorf(
+				"failed to read OS for server %s: %w", d.Id(), err,
+			))
+		}
+
+		partitionsConfig = resourceOS.PartitionsConfig
+
+	case !partitionsConfigFromSchema.IsEmpty() || os.Partitioning || forceDefaultPartitions:
+		if !os.Partitioning { // in case of configured partitions or forced default partitions
 			return nil, diag.FromErr(fmt.Errorf(
 				"%s %s does not support partitions config", objectOS, os.OSValue,
 			))
@@ -594,7 +608,7 @@ func resourceServersServerV1UpdateLoadData(
 			))
 		}
 
-		partitionsConfig, err = partitionsConfigFromSchema.CastToAPIPartitionsConfig(localDrives, os.DefaultPartitions)
+		partitionsConfig, err = partitionsConfigFromSchema.CastToAPIPartitionsConfig(localDrives, os.DefaultPartitions, forceDefaultPartitions)
 		if err != nil {
 			return nil, diag.FromErr(fmt.Errorf(
 				"failed to read partitions config input: %w", err,

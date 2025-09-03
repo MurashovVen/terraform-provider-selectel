@@ -8,7 +8,6 @@ import (
 	"github.com/selectel/go-selvpcclient/v4/selvpcclient/resell/v2/servers"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
 	serverslocal "github.com/terraform-providers/terraform-provider-selectel/selectel/internal/api/servers"
 )
 
@@ -131,6 +130,7 @@ func TestPartitionsConfig_CastToAPIPartitionsConfig(t *testing.T) {
 				items = append(items, item)
 			}
 		}
+
 		return items
 	}
 
@@ -140,6 +140,7 @@ func TestPartitionsConfig_CastToAPIPartitionsConfig(t *testing.T) {
 				return item
 			}
 		}
+
 		return nil
 	}
 

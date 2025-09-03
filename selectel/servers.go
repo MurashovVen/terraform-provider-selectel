@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/selectel/go-selvpcclient/v4/selvpcclient/resell/v2/servers"
-
 	serverslocal "github.com/terraform-providers/terraform-provider-selectel/selectel/internal/api/servers"
 	"github.com/terraform-providers/terraform-provider-selectel/selectel/internal/hashcode"
 )
@@ -86,10 +85,10 @@ const (
 )
 
 func (pc *PartitionsConfig) CastToAPIPartitionsConfig(
-	localDrives serverslocal.LocalDrives, defaultPartitions []*serverslocal.PartitionConfigItem,
+	localDrives serverslocal.LocalDrives, defaultPartitions []*serverslocal.PartitionConfigItem, forceDefaultPartitions bool,
 ) (serverslocal.PartitionsConfig, error) {
 	// if empty and partitioning is on - filling with default values
-	if pc.IsEmpty() {
+	if pc.IsEmpty() || forceDefaultPartitions {
 		if len(localDrives) == 0 {
 			return nil, errors.New("local drives are required for automatic partitioning")
 		}

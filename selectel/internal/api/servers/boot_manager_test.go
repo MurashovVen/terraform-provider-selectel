@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
 	"github.com/terraform-providers/terraform-provider-selectel/selectel/internal/httptest"
 )
 
