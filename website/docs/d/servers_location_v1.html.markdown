@@ -3,12 +3,12 @@ layout: "selectel"
 page_title: "Selectel: selectel_servers_location_v1"
 sidebar_current: "docs-selectel-datasource-servers-location-v1"
 description: |-
-  Provides a list of locations available in Selectel Dedicated Servers.
+  Provides a list of available locations.
 ---
 
 # selectel\_servers\_location\_v1
 
-Provides a list of locations available in Selectel Dedicated Servers.
+Provides a list of available locations.
 
 ## Example Usage
 

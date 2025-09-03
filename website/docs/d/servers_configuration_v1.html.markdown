@@ -8,7 +8,7 @@ description: |-
 
 # selectel\_servers\_configuration\_v1
 
-Provides a list of server configurations available in Selectel Dedicated Servers.
+Provides a list of server configurations available in Selectel.
 
 ## Example Usage
 

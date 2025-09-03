@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/terraform-providers/terraform-provider-selectel/selectel/internal/api/servers"
 )
 
@@ -129,9 +130,9 @@ func expandSubnetSearchFilter(filterSet *schema.Set) subnetSearchFilter {
 
 	resourceFilterMap := filterSet.List()[0].(map[string]interface{})
 
-	name, ok := resourceFilterMap["ip"]
+	ip, ok := resourceFilterMap["ip"]
 	if ok {
-		filter.ip = name.(string)
+		filter.ip = ip.(string)
 	}
 
 	subnet, ok := resourceFilterMap["subnet"]
