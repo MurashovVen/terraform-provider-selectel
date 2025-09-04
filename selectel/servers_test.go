@@ -84,11 +84,11 @@ func TestPartitionsConfig_ContainsBootPartition(t *testing.T) {
 func TestPartitionsConfig_PickFirstRaidName(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		pc := &PartitionsConfig{SoftRaidConfig: []*SoftRaidConfigItem{{Name: "raid1"}, {Name: "raid2"}}}
-		assert.Equal(t, "raid1", pc.PickFirstRaidName())
+		assert.Equal(t, "raid1", pc.PickDefaultBootRaidName())
 	})
 	t.Run("Empty", func(t *testing.T) {
 		pc := &PartitionsConfig{}
-		assert.Equal(t, "", pc.PickFirstRaidName())
+		assert.Equal(t, "", pc.PickDefaultBootRaidName())
 	})
 }
 

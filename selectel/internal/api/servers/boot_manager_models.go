@@ -43,6 +43,10 @@ func (ld LocalDrives) GetDefaultType() string {
 	return fastestDiskType
 }
 
+func (l *LocalDrive) SpeedRatio() int {
+	return computeLocalDriveSpeedRatio(l.Match.Type)
+}
+
 func computeLocalDriveSpeedRatio(ldType string) int {
 	ldSpeed := 0
 	ldTypeLower := strings.ToLower(ldType)

@@ -138,7 +138,7 @@ func (pc *PartitionsConfig) CastToAPIPartitionsConfig(
 		for _, dp := range defaultPartitions {
 			if dp.Mount == mountBaseBoot {
 				pc.DiskPartitions = append(pc.DiskPartitions, &DiskPartitionsItem{
-					Raid:   pc.PickFirstRaidName(),
+					Raid:   pc.PickDefaultBootRaidName(localDrives),
 					Mount:  dp.Mount,
 					Size:   dp.Size,
 					FSType: dp.FSType,
@@ -317,13 +317,34 @@ func (pc *PartitionsConfig) ContainsBootPartition() bool {
 	return false
 }
 
-// todo ask 4 ok?
-func (pc *PartitionsConfig) PickFirstRaidName() string {
+func (pc *PartitionsConfig) PickDefaultBootRaidName(localDrives serverslocal.LocalDrives) string {
+	var (
+		fastestSR      = ""
+		fastestSRRatio = 0
+	)
 	for _, sr := range pc.SoftRaidConfig {
-		return sr.Name
+		currRatio := 0
+		for _, ld := range localDrives {
+			if ld.Match.Type != sr.DiskType {
+				continue
+			}
+
+			currRatio = ld.SpeedRatio()
+			break
+		}
+
+		switch {
+		case fastestSR == "":
+			fastestSR = sr.Name
+			fastestSRRatio = currRatio
+
+		case currRatio > fastestSRRatio:
+			fastestSR = sr.Name
+			fastestSRRatio = currRatio
+		}
 	}
 
-	return ""
+	return fastestSR
 }
 
 func resourceServersServerV1ReadPartitionsConfig(d *schema.ResourceData) (*PartitionsConfig, error) {
