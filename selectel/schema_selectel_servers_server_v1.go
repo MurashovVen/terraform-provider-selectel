@@ -13,7 +13,7 @@ const (
 	serversServerSchemaKeyIsServerChip             = "is_server_chip"
 	serversServerSchemaKeyPublicSubnetID           = "public_subnet_id"
 	serversServerSchemaKeyPrivateSubnet            = "private_subnet"
-	serversServerSchemaKeyOSUserScript             = "user_script"
+	serversServerSchemaKeyOSUserData               = "user_data"
 	serversServerSchemaKeyOSHostName               = "os_host_name"
 	serversServerSchemaKeyOSSSHKey                 = "ssh_key"
 	serversServerSchemaKeyOSSSHKeyName             = "ssh_key_name"
@@ -61,7 +61,7 @@ func resourceServersServerV1Schema() map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Optional: true,
 		},
-		serversServerSchemaKeyOSUserScript: {
+		serversServerSchemaKeyOSUserData: {
 			Type:     schema.TypeString,
 			Optional: true,
 		},

@@ -31,7 +31,7 @@ func TestAccServersServerV1Basic(t *testing.T) {
 		pricePlanName                 = "1 день"
 		osHostName, updatedOSHostName = "hostname", "hostname1"
 		osPassword, updatedOSPassword = "Passw0rd!", "Passw0rd!1"
-		userScript, updatedUserScript = "#!/bin/bash", "env"
+		userData, updatedUserData     = "#!/bin/bash", "env"
 		sshKey                        = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCOIWeVNMRC7Y9jeBoG5GP3irOf/u5EbuHYixuZEmtHDtmtlnmzdcBEnpPY5OlFhjSySlUC1clCIShMXgWBfdnvk7Dbp5hgCP3Lh9pS/b8e3kxstIiGF9d7IX04DfVTOF424LlMAFbHNsrmX+uU3lizO20DljFIJNML0OdUO7eKg0XOK1OWVQlSzvZbFj39oYTSqCtoI92czQf4DdJ+0IF1/ZNewE6xPohfnZp5cl82UjYs8vxmcaiifVf7kUyQe/ilv/fZYpt59KCJBJDrTU/ko9hNxCVXrCOw7pPOQayoQ2Vir3M1AnhDMunoxFBocndgffNXVQYtA/3TXLVB7feb"
 	)
 
@@ -42,51 +42,51 @@ func TestAccServersServerV1Basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			// create case
 			{
-				Config: testAccServersServerV1(projectName, osName, osVersion, locationName, cfgName, pricePlanName, osHostName, sshKey, osPassword, userScript, true),
+				Config: testAccServersServerV1(projectName, osName, osVersion, locationName, cfgName, pricePlanName, osHostName, sshKey, osPassword, userData, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckVPCV2ProjectExists("selectel_vpc_project_v2.project_tf_acc_test_1", &project),
 					testAccCheckServersServerV1Exists("selectel_servers_server_v1.server_tf_acc_test_1"),
 					resource.TestCheckResourceAttr("selectel_servers_server_v1.server_tf_acc_test_1", "price_plan_name", pricePlanName),
 					resource.TestCheckResourceAttr("selectel_servers_server_v1.server_tf_acc_test_1", "is_server_chip", strconv.FormatBool(true)),
 					resource.TestCheckResourceAttr("selectel_servers_server_v1.server_tf_acc_test_1", "os_host_name", osHostName),
-					resource.TestCheckResourceAttr("selectel_servers_server_v1.server_tf_acc_test_1", "user_script", userScript),
+					resource.TestCheckResourceAttr("selectel_servers_server_v1.server_tf_acc_test_1", "user_data", userData),
 					resource.TestCheckResourceAttr("selectel_servers_server_v1.server_tf_acc_test_1", "os_password", osPassword),
 				),
 			},
 			// update cases
 			{
-				Config: testAccServersServerV1(projectName, osName, osVersion, locationName, cfgName, pricePlanName, updatedOSHostName, sshKey, osPassword, userScript, true),
+				Config: testAccServersServerV1(projectName, osName, osVersion, locationName, cfgName, pricePlanName, updatedOSHostName, sshKey, osPassword, userData, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckVPCV2ProjectExists("selectel_vpc_project_v2.project_tf_acc_test_1", &project),
 					testAccCheckServersServerV1Exists("selectel_servers_server_v1.server_tf_acc_test_1"),
 					resource.TestCheckResourceAttr("selectel_servers_server_v1.server_tf_acc_test_1", "price_plan_name", pricePlanName),
 					resource.TestCheckResourceAttr("selectel_servers_server_v1.server_tf_acc_test_1", "is_server_chip", strconv.FormatBool(true)),
 					resource.TestCheckResourceAttr("selectel_servers_server_v1.server_tf_acc_test_1", "os_host_name", updatedOSHostName),
-					resource.TestCheckResourceAttr("selectel_servers_server_v1.server_tf_acc_test_1", "user_script", userScript),
+					resource.TestCheckResourceAttr("selectel_servers_server_v1.server_tf_acc_test_1", "user_data", userData),
 					resource.TestCheckResourceAttr("selectel_servers_server_v1.server_tf_acc_test_1", "os_password", osPassword),
 				),
 			},
 			{
-				Config: testAccServersServerV1(projectName, osName, osVersion, locationName, cfgName, pricePlanName, updatedOSHostName, sshKey, updatedOSPassword, userScript, true),
+				Config: testAccServersServerV1(projectName, osName, osVersion, locationName, cfgName, pricePlanName, updatedOSHostName, sshKey, updatedOSPassword, userData, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckVPCV2ProjectExists("selectel_vpc_project_v2.project_tf_acc_test_1", &project),
 					testAccCheckServersServerV1Exists("selectel_servers_server_v1.server_tf_acc_test_1"),
 					resource.TestCheckResourceAttr("selectel_servers_server_v1.server_tf_acc_test_1", "price_plan_name", pricePlanName),
 					resource.TestCheckResourceAttr("selectel_servers_server_v1.server_tf_acc_test_1", "is_server_chip", strconv.FormatBool(true)),
 					resource.TestCheckResourceAttr("selectel_servers_server_v1.server_tf_acc_test_1", "os_host_name", updatedOSHostName),
-					resource.TestCheckResourceAttr("selectel_servers_server_v1.server_tf_acc_test_1", "user_script", userScript),
+					resource.TestCheckResourceAttr("selectel_servers_server_v1.server_tf_acc_test_1", "user_data", userData),
 					resource.TestCheckResourceAttr("selectel_servers_server_v1.server_tf_acc_test_1", "os_password", updatedOSPassword),
 				),
 			},
 			{
-				Config: testAccServersServerV1(projectName, osName, osVersion, locationName, cfgName, pricePlanName, updatedOSHostName, sshKey, updatedOSPassword, updatedUserScript, true),
+				Config: testAccServersServerV1(projectName, osName, osVersion, locationName, cfgName, pricePlanName, updatedOSHostName, sshKey, updatedOSPassword, updatedUserData, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckVPCV2ProjectExists("selectel_vpc_project_v2.project_tf_acc_test_1", &project),
 					testAccCheckServersServerV1Exists("selectel_servers_server_v1.server_tf_acc_test_1"),
 					resource.TestCheckResourceAttr("selectel_servers_server_v1.server_tf_acc_test_1", "price_plan_name", pricePlanName),
 					resource.TestCheckResourceAttr("selectel_servers_server_v1.server_tf_acc_test_1", "is_server_chip", strconv.FormatBool(true)),
 					resource.TestCheckResourceAttr("selectel_servers_server_v1.server_tf_acc_test_1", "os_host_name", updatedOSHostName),
-					resource.TestCheckResourceAttr("selectel_servers_server_v1.server_tf_acc_test_1", "user_script", updatedUserScript),
+					resource.TestCheckResourceAttr("selectel_servers_server_v1.server_tf_acc_test_1", "user_data", updatedUserData),
 					resource.TestCheckResourceAttr("selectel_servers_server_v1.server_tf_acc_test_1", "os_password", updatedOSPassword),
 				),
 			},
@@ -117,7 +117,7 @@ func testAccCheckServersServerV1Exists(n string) resource.TestCheckFunc {
 }
 
 func testAccServersServerV1(
-	projectName, osName, osVersion, locationName, cfgName, pricePlanName, osHostName, sshKey, osPassword, userScript string, isServerChip bool,
+	projectName, osName, osVersion, locationName, cfgName, pricePlanName, osHostName, sshKey, osPassword, userData string, isServerChip bool,
 ) string {
 	return fmt.Sprintf(`
 resource "selectel_vpc_project_v2" "project_tf_acc_test_1" {
@@ -163,7 +163,7 @@ resource "selectel_servers_server_v1" "server_tf_acc_test_1" {
 
  os_password        = "%s"
 
- user_script = "%s"
+ user_data = "%s"
 
  partitions_config {
    soft_raid_config {
@@ -196,7 +196,7 @@ resource "selectel_servers_server_v1" "server_tf_acc_test_1" {
    }
  }
 }
-`, projectName, osName, osVersion, locationName, cfgName, isServerChip, pricePlanName, osHostName, isServerChip, sshKey, osPassword, userScript)
+`, projectName, osName, osVersion, locationName, cfgName, isServerChip, pricePlanName, osHostName, isServerChip, sshKey, osPassword, userData)
 }
 
 func Test_resourceServersServerV1CreateValidatePreconditions(t *testing.T) {
@@ -396,13 +396,13 @@ func Test_resourceServersServerV1UpdateValidatePreconditions(t *testing.T) {
 	}
 
 	tests := []struct {
-		name           string
-		os             *servers.OperatingSystem
-		partitions     servers.PartitionsConfig
-		needUserScript bool
-		needSSHKey     bool
-		changes        []string
-		wantErr        string
+		name         string
+		os           *servers.OperatingSystem
+		partitions   servers.PartitionsConfig
+		needUserData bool
+		needSSHKey   bool
+		changes      []string
+		wantErr      string
 	}{
 		{
 			name:    "SuccessOSIDChanged",
@@ -438,10 +438,10 @@ func Test_resourceServersServerV1UpdateValidatePreconditions(t *testing.T) {
 			changes:    []string{serversServerSchemaKeyOSHostName, serversServerSchemaKeyOSPartitionsConfig},
 		},
 		{
-			name:           "SuccessOSUserScriptChanged",
-			os:             defaultOS(),
-			needUserScript: true,
-			changes:        []string{serversServerSchemaKeyOSUserScript},
+			name:         "SuccessOSUserDataChanged",
+			os:           defaultOS(),
+			needUserData: true,
+			changes:      []string{serversServerSchemaKeyOSUserData},
 		},
 		{
 			name:    "NoOSConfigChanged",
@@ -474,11 +474,11 @@ func Test_resourceServersServerV1UpdateValidatePreconditions(t *testing.T) {
 			wantErr: "can't update case price plan ID has changed",
 		},
 		{
-			name:           "UserScriptNotAllowed",
-			os:             func() *servers.OperatingSystem { o := defaultOS(); o.ScriptAllowed = false; return o }(),
-			needUserScript: true,
-			changes:        []string{serversServerSchemaKeyOSUserScript},
-			wantErr:        "does not allow scripts",
+			name:         "UserScriptNotAllowed",
+			os:           func() *servers.OperatingSystem { o := defaultOS(); o.ScriptAllowed = false; return o }(),
+			needUserData: true,
+			changes:      []string{serversServerSchemaKeyOSUserData},
+			wantErr:      "does not allow scripts",
 		},
 		{
 			name:       "SSHKeyNotAllowed",
@@ -530,7 +530,7 @@ func Test_resourceServersServerV1UpdateValidatePreconditions(t *testing.T) {
 			}
 
 			diags := resourceServersServerV1UpdateValidatePreconditions(
-				context.Background(), d, client, tt.os, tt.partitions, tt.needUserScript, tt.needSSHKey,
+				context.Background(), d, client, tt.os, tt.partitions, tt.needUserData, tt.needSSHKey,
 			)
 
 			if tt.wantErr != "" {

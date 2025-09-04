@@ -68,8 +68,8 @@ func resourceServersServerV1Create(ctx context.Context, d *schema.ResourceData, 
 	// validating availability of the server, OS, price plan and balance, partitions config
 
 	var (
-		userScript, _ = d.Get(serversServerSchemaKeyOSUserScript).(string)
-		sshKeyPK, _   = d.Get(serversServerSchemaKeyOSSSHKey).(string)
+		userData, _ = d.Get(serversServerSchemaKeyOSUserData).(string)
+		sshKeyPK, _ = d.Get(serversServerSchemaKeyOSSSHKey).(string)
 	)
 
 	if data.sshKeyByName != nil {
@@ -77,7 +77,7 @@ func resourceServersServerV1Create(ctx context.Context, d *schema.ResourceData, 
 	}
 
 	diagErr = resourceServersServerV1CreateValidatePreconditions(
-		ctx, dsClient, data, locationID, data.pricePlan.UUID, configurationID, osID, userScript != "",
+		ctx, dsClient, data, locationID, data.pricePlan.UUID, configurationID, osID, userData != "",
 		sshKeyPK != "" || data.sshKeyByName != nil, isServerChip, privateSubnet != "",
 	)
 	if diagErr != nil {
@@ -114,7 +114,7 @@ func resourceServersServerV1Create(ctx context.Context, d *schema.ResourceData, 
 			UserHostname:     hostName,
 			UserDesc:         hostName,
 			Password:         password,
-			UserScript:       userScript,
+			UserData:         userData,
 		}
 	)
 
@@ -317,7 +317,7 @@ func resourceServersServerV1CreateValidatePreconditions(
 	ctx context.Context, dsClient *servers.ServiceClient,
 	data *serversServerV1CreateData,
 	locationID, pricePlanID, configurationID, osID string,
-	needUserScript, sshKey, isServerChip bool,
+	needUserData, sshKey, isServerChip bool,
 	needPrivateIP bool,
 ) diag.Diagnostics {
 	objectServerName := objectServer
@@ -343,7 +343,7 @@ func resourceServersServerV1CreateValidatePreconditions(
 			objectOS, osID, objectServerName, configurationID, objectLocation, locationID,
 		))
 
-	case needUserScript && !data.os.ScriptAllowed:
+	case needUserData && !data.os.ScriptAllowed:
 		return diag.FromErr(fmt.Errorf(
 			"%s %s does not allow scripts", objectOS, osID,
 		))
@@ -422,7 +422,7 @@ func resourceServersServerV1Read(ctx context.Context, d *schema.ResourceData, me
 	}
 
 	_ = d.Set("os_host_name", resourceOS.UserHostName)
-	_ = d.Set("user_script", resourceOS.UserScript) // todo cloud init user data
+	_ = d.Set("user_data", resourceOS.UserData)
 	_ = d.Set("os_password", resourceOS.Password)
 	_ = d.Set("ssh_key", resourceOS.UserSSHKey)
 
@@ -491,8 +491,8 @@ func resourceServersServerV1Update(ctx context.Context, d *schema.ResourceData, 
 	}
 
 	var (
-		userScript, _ = d.Get(serversServerSchemaKeyOSUserScript).(string)
-		sshKeyPK, _   = d.Get(serversServerSchemaKeyOSSSHKey).(string)
+		userData, _ = d.Get(serversServerSchemaKeyOSUserData).(string)
+		sshKeyPK, _ = d.Get(serversServerSchemaKeyOSSSHKey).(string)
 	)
 
 	if data.sshKeyByName != nil {
@@ -500,7 +500,7 @@ func resourceServersServerV1Update(ctx context.Context, d *schema.ResourceData, 
 	}
 
 	diagErr = resourceServersServerV1UpdateValidatePreconditions(
-		ctx, d, dsClient, data.os, data.partitions, userScript != "", sshKeyPK != "" || data.sshKeyByName != nil,
+		ctx, d, dsClient, data.os, data.partitions, userData != "", sshKeyPK != "" || data.sshKeyByName != nil,
 	)
 	if diagErr != nil {
 		return diagErr
@@ -519,7 +519,7 @@ func resourceServersServerV1Update(ctx context.Context, d *schema.ResourceData, 
 			UserHostname:     hostName,
 			Password:         password,
 			PartitionsConfig: data.partitions,
-			UserScript:       userScript,
+			UserData:         userData,
 		}
 	)
 
@@ -629,7 +629,7 @@ func resourceServersServerV1UpdateLoadData(
 func resourceServersServerV1UpdateValidatePreconditions(
 	ctx context.Context, d *schema.ResourceData, dsClient *servers.ServiceClient,
 	os *servers.OperatingSystem, partitions servers.PartitionsConfig,
-	needUserScript, needSSHKey bool,
+	needUserData, needSSHKey bool,
 ) diag.Diagnostics {
 	var (
 		osID                           = d.Get(serversServerSchemaKeyOSID).(string)
@@ -685,12 +685,12 @@ func resourceServersServerV1UpdateValidatePreconditions(
 	case !canUpdateAdditionalOSParams && d.HasChange(serversServerSchemaKeyOSPartitionsConfig):
 		return diag.Errorf("can't update cause partitions has changed or %s flag", serversServerSchemaForceUpdateAdditionalParams)
 
-	case !canUpdateAdditionalOSParams && d.HasChange(serversServerSchemaKeyOSUserScript):
-		prevScript, _ := d.GetChange(serversServerSchemaKeyOSUserScript)
+	case !canUpdateAdditionalOSParams && d.HasChange(serversServerSchemaKeyOSUserData):
+		prevScript, _ := d.GetChange(serversServerSchemaKeyOSUserData)
 
-		return diag.Errorf("can't update cause user script has changed, use previous script %s or %s flag", prevScript, serversServerSchemaForceUpdateAdditionalParams)
+		return diag.Errorf("can't update cause user data has changed, use previous data %s or %s flag", prevScript, serversServerSchemaForceUpdateAdditionalParams)
 
-	case needUserScript && !os.ScriptAllowed:
+	case needUserData && !os.ScriptAllowed:
 		return diag.FromErr(fmt.Errorf(
 			"%s %s does not allow scripts", objectOS, osID,
 		))

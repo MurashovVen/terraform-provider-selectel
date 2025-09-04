@@ -376,7 +376,7 @@ func TestServiceClient_OperatingSystemByResource(t *testing.T) {
 			"result": {
 				"user_ssh_key": "ssh-rsa AAAAB3...",
 				"userhostname": "test-host",
-				"user_script": "echo Hello",
+				"cloud_init_user_data": "echo Hello",
 				"password": "password123",
 				"os_template": "ubuntu",
 				"arch": "x86_64",
@@ -398,7 +398,7 @@ func TestServiceClient_OperatingSystemByResource(t *testing.T) {
 		wantOS := &OperatingSystemAtResource{
 			UserSSHKey:   "ssh-rsa AAAAB3...",
 			UserHostName: "test-host",
-			UserScript:   "echo Hello",
+			UserData:     "echo Hello",
 			Password:     "password123",
 			OSValue:      "ubuntu",
 			Arch:         "x86_64",

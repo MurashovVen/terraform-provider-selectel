@@ -30,7 +30,7 @@ resource "selectel_servers_server_v1" "server_1" {
 
   os_password        = "Passw0rd!"
 
-  user_script = "#!/bin/bash"
+  user_data = "#!/bin/bash"
 
   partitions_config {
     soft_raid_config {
@@ -78,7 +78,7 @@ resource "selectel_servers_server_v1" "server_1" {
 
 * `os_password` - (Optional) Password for the OS user.
 
-* `user_script` - (Optional) A script to be run on the server after OS installation. 
+* `user_data` - (Optional) These are custom configuration settings that automatically perform common tasks or run server setup scripts, reducing the time it takes to configure and deploy your infrastructure. 
 
 * `ssh_key` - (Optional) The public SSH key to be added to the server. 
 
@@ -104,7 +104,7 @@ resource "selectel_servers_server_v1" "server_1" {
 
 * `os_host_name` - (Optional) Hostname for the server.
 
-* `force_update_additional_params` - (Optional) Enables update for additional os params (os_password, user_script, ssh_key, ssh_key_name, partitions_config, os_host_name) without changing os_id. NOTE: installing new os will delete all data on the server.
+* `force_update_additional_params` - (Optional) Enables update for additional os params (os_password, user_data, ssh_key, ssh_key_name, partitions_config, os_host_name) without changing os_id. NOTE: installing new os will delete all data on the server.
 
 ## Attributes Reference
 

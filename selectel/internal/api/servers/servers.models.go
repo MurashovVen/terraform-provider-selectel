@@ -113,7 +113,7 @@ type (
 		UserHostname     string           `json:"userhostname"`
 		UserDesc         string           `json:"user_desc"`
 		Password         string           `json:"password,omitempty"`
-		UserScript       string           `json:"user_script,omitempty"`
+		UserData         string           `json:"cloud_init_user_data,omitempty"`
 	}
 
 	ServerBillingPostResult struct {

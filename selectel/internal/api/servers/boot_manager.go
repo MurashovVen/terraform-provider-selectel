@@ -167,7 +167,7 @@ type InstallNewOSPayload struct {
 	UserHostname     string           `json:"userhostname"`
 	Password         string           `json:"password,omitempty"`
 	PartitionsConfig PartitionsConfig `json:"partitions_config,omitempty"`
-	UserScript       string           `json:"user_script,omitempty"`
+	UserData         string           `json:"cloud_init_user_data,omitempty"`
 }
 
 func (client *ServiceClient) InstallNewOS(
