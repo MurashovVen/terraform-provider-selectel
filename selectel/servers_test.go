@@ -146,7 +146,7 @@ func TestPartitionsConfig_CastToAPIPartitionsConfig(t *testing.T) {
 
 	t.Run("AutomaticSuccess", func(t *testing.T) {
 		pc := &PartitionsConfig{}
-		apiConfig, err := pc.CastToAPIPartitionsConfig(localDrives, defaultPartitions)
+		apiConfig, err := pc.CastToAPIPartitionsConfig(localDrives, defaultPartitions, false)
 		require.NoError(t, err)
 
 		drives := findItemsByType(apiConfig, "drive")
@@ -177,7 +177,7 @@ func TestPartitionsConfig_CastToAPIPartitionsConfig(t *testing.T) {
 
 	t.Run("AutomaticFailNoDrives", func(t *testing.T) {
 		pc := &PartitionsConfig{}
-		_, err := pc.CastToAPIPartitionsConfig(nil, defaultPartitions)
+		_, err := pc.CastToAPIPartitionsConfig(nil, defaultPartitions, false)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "local drives are required for automatic partitioning")
 	})
@@ -192,7 +192,7 @@ func TestPartitionsConfig_CastToAPIPartitionsConfig(t *testing.T) {
 				{Mount: "backup", Size: -1, Raid: "ssd-raid", FSType: "xfs"},
 			},
 		}
-		apiConfig, err := pc.CastToAPIPartitionsConfig(localDrives, defaultPartitions)
+		apiConfig, err := pc.CastToAPIPartitionsConfig(localDrives, defaultPartitions, false)
 		require.NoError(t, err)
 
 		bootFS := findFSByMount(apiConfig, "/boot")
@@ -218,7 +218,7 @@ func TestPartitionsConfig_CastToAPIPartitionsConfig(t *testing.T) {
 				{Mount: "/", Size: -1, Raid: "non-existent-raid"},
 			},
 		}
-		_, err := pc.CastToAPIPartitionsConfig(localDrives, defaultPartitions)
+		_, err := pc.CastToAPIPartitionsConfig(localDrives, defaultPartitions, false)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "can't find disk type for non-existent-raid")
 	})
@@ -228,7 +228,7 @@ func TestPartitionsConfig_CastToAPIPartitionsConfig(t *testing.T) {
 			SoftRaidConfig: []*SoftRaidConfigItem{{Name: "raid", Level: "raid1", DiskType: "SSD"}},
 			DiskPartitions: []*DiskPartitionsItem{{Mount: "/", Size: -1, Raid: "raid"}},
 		}
-		_, err := pc.CastToAPIPartitionsConfig(localDrives, nil)
+		_, err := pc.CastToAPIPartitionsConfig(localDrives, nil, false)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "can't find default partition for boot partition")
 	})
@@ -238,7 +238,7 @@ func TestPartitionsConfig_CastToAPIPartitionsConfig(t *testing.T) {
 			SoftRaidConfig: []*SoftRaidConfigItem{{Name: "raid", Level: "raid1", DiskType: "NVME"}},
 			DiskPartitions: []*DiskPartitionsItem{{Mount: "/", Size: -1, Raid: "raid"}},
 		}
-		_, err := pc.CastToAPIPartitionsConfig(localDrives, defaultPartitions)
+		_, err := pc.CastToAPIPartitionsConfig(localDrives, defaultPartitions, false)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "can't find disk for /")
 	})
