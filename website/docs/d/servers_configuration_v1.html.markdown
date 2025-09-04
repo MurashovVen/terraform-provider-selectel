@@ -28,7 +28,7 @@ data "selectel_servers_configuration_v1" "server_configs" {
 
 * `filter` - (Required) Values to filter available configurations.
 
-  * `is_server_chip` - (Required) Specifies the type of server. `true` for Chipcore Line (formerly "server chip"), `false` for standard servers.
+  * `is_server_chip` - (Required) Specifies the type of server. `true` for Chipcore line, `false` for standard servers.
 
   * `name` - (Optional) Name of the configuration to search.
 

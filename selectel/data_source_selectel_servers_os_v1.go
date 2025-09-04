@@ -12,7 +12,7 @@ import (
 
 func dataSourceServersOSV1() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceServersOperatingSystemsV1Read,
+		ReadContext: dataSourceServersOSV1Read,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -87,7 +87,7 @@ func dataSourceServersOSV1() *schema.Resource {
 	}
 }
 
-func dataSourceServersOperatingSystemsV1Read(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceServersOSV1Read(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	dsClient, diagErr := getServersClient(d, meta)
 	if diagErr != nil {
 		return diagErr

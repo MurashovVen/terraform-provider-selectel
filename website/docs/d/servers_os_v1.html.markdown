@@ -31,7 +31,8 @@ data "selectel_servers_location_v1" "server_locations" {
 data "selectel_servers_os_v1" "server_os" {
   project_id = selectel_vpc_project_v2.project_1.id
   filter {
-    name             = "Ubuntu 20.04 LTS amd64"
+    name             = "Ubuntu"
+    version          = "22.04"
     configuration_id = data.selectel_servers_configuration_v1.server_configs.configurations[0].id
     location_id      = data.selectel_servers_location_v1.server_locations.locations[0].id
   }
