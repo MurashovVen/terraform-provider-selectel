@@ -67,7 +67,7 @@ type (
 
 	DiskPartitionsItem struct {
 		Mount       string
-		Size        int
+		Size        float64
 		SizePercent float64
 		Raid        string
 		FSType      string
@@ -85,10 +85,10 @@ const (
 )
 
 func (pc *PartitionsConfig) CastToAPIPartitionsConfig(
-	localDrives serverslocal.LocalDrives, defaultPartitions []*serverslocal.PartitionConfigItem, forceDefaultPartitions bool,
+	localDrives serverslocal.LocalDrives, defaultPartitions []*serverslocal.PartitionConfigItem,
 ) (serverslocal.PartitionsConfig, error) {
 	// if empty and partitioning is on - filling with default values
-	if pc.IsEmpty() || forceDefaultPartitions {
+	if pc.IsEmpty() {
 		if len(localDrives) == 0 {
 			return nil, errors.New("local drives are required for automatic partitioning")
 		}
@@ -234,7 +234,7 @@ func (pc *PartitionsConfig) addDiskPartitionToAPIConfig(
 
 			percent := diskPartition.SizePercent
 
-			size = int(math.Round(baseSize * percent / 100.0))
+			size = math.Round(baseSize * percent / 100.0)
 		}
 
 		priority := nextPriorityByDrive[ldID]
@@ -412,11 +412,11 @@ func resourceServersServerV1ReadPartitionsConfigDiskPartitions(partitionsConfig 
 			return nil, fmt.Errorf("partitions_config.disk_partitions[%d].mount has unexpected type", idx)
 		}
 
-		size := 0
+		size := 0.0
 
 		sizeRaw, hasSizeRaw := item[serversServerSchemaKeySize]
 		if hasSizeRaw {
-			size, ok = sizeRaw.(int)
+			size, ok = sizeRaw.(float64)
 			if !ok {
 				return nil, fmt.Errorf("partitions_config.disk_partitions[%d].size has unexpected type", idx)
 			}

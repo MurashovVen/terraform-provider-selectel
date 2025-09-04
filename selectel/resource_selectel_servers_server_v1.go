@@ -52,15 +52,14 @@ func resourceServersServerV1Create(ctx context.Context, d *schema.ResourceData, 
 		pricePlanName   = d.Get(serversServerSchemaKeyPricePlanName).(string)
 		sshKeyName, _   = d.Get(serversServerSchemaKeyOSSSHKeyName).(string)
 
-		isServerChip, _           = d.Get(serversServerSchemaKeyIsServerChip).(bool)
-		publicSubnetID, _         = d.Get(serversServerSchemaKeyPublicSubnetID).(string)
-		privateSubnet, _          = d.Get(serversServerSchemaKeyPrivateSubnet).(string)
-		forceDefaultPartitions, _ = d.Get(serversServerSchemaKeyDefaultPartitionsForceUse).(bool)
+		isServerChip, _   = d.Get(serversServerSchemaKeyIsServerChip).(bool)
+		publicSubnetID, _ = d.Get(serversServerSchemaKeyPublicSubnetID).(string)
+		privateSubnet, _  = d.Get(serversServerSchemaKeyPrivateSubnet).(string)
 	)
 
 	data, diagErr := resourceServersServerV1CreateLoadData(
 		ctx, dsClient, locationID, osID, configurationID, publicSubnetID, privateSubnet,
-		sshKeyName, pricePlanName, isServerChip, forceDefaultPartitions, partitionsConfigFromSchema,
+		sshKeyName, pricePlanName, isServerChip, partitionsConfigFromSchema,
 	)
 	if diagErr != nil {
 		return diagErr
@@ -171,7 +170,7 @@ type serversServerV1CreateData struct {
 func resourceServersServerV1CreateLoadData(
 	ctx context.Context, dsClient *servers.ServiceClient,
 	locationID, osID, configurationID, publicSubnetID, privateSubnet, sshKeyName, pricePlanName string,
-	isServerChip, forceDefaultPartitions bool,
+	isServerChip bool,
 	partitionsConfigFromSchema *PartitionsConfig,
 ) (*serversServerV1CreateData, diag.Diagnostics) {
 	operatingSystems, _, err := dsClient.OperatingSystems(ctx, servers.OperatingSystemsQuery{
@@ -198,8 +197,8 @@ func resourceServersServerV1CreateLoadData(
 	}
 
 	var partitionsConfig servers.PartitionsConfig
-	if !partitionsConfigFromSchema.IsEmpty() || os.Partitioning || forceDefaultPartitions {
-		if !os.Partitioning { // in case of configured partitions or forced default partitions
+	if !partitionsConfigFromSchema.IsEmpty() || os.Partitioning {
+		if !os.Partitioning { // in case of configured partitions
 			return nil, diag.FromErr(fmt.Errorf(
 				"%s %s does not support partitions config", objectOS, os.OSValue,
 			))
@@ -212,7 +211,7 @@ func resourceServersServerV1CreateLoadData(
 			))
 		}
 
-		partitionsConfig, err = partitionsConfigFromSchema.CastToAPIPartitionsConfig(localDrives, os.DefaultPartitions, forceDefaultPartitions)
+		partitionsConfig, err = partitionsConfigFromSchema.CastToAPIPartitionsConfig(localDrives, os.DefaultPartitions)
 		if err != nil {
 			return nil, diag.FromErr(fmt.Errorf(
 				"failed to read partitions config input: %w", err,
@@ -423,7 +422,7 @@ func resourceServersServerV1Read(ctx context.Context, d *schema.ResourceData, me
 	}
 
 	_ = d.Set("os_host_name", resourceOS.UserHostName)
-	_ = d.Set("user_script", resourceOS.UserScript)
+	_ = d.Set("user_script", resourceOS.UserScript) // todo cloud init user data
 	_ = d.Set("os_password", resourceOS.Password)
 	_ = d.Set("ssh_key", resourceOS.UserSSHKey)
 
@@ -480,14 +479,13 @@ func resourceServersServerV1Update(ctx context.Context, d *schema.ResourceData, 
 	}
 
 	var (
-		locationID                = d.Get(serversServerSchemaKeyLocationID).(string)
-		configurationID           = d.Get(serversServerSchemaKeyConfigurationID).(string)
-		osID                      = d.Get(serversServerSchemaKeyOSID).(string)
-		sshKeyName, _             = d.Get(serversServerSchemaKeyOSSSHKeyName).(string)
-		forceDefaultPartitions, _ = d.Get(serversServerSchemaKeyDefaultPartitionsForceUse).(bool)
+		locationID      = d.Get(serversServerSchemaKeyLocationID).(string)
+		configurationID = d.Get(serversServerSchemaKeyConfigurationID).(string)
+		osID            = d.Get(serversServerSchemaKeyOSID).(string)
+		sshKeyName, _   = d.Get(serversServerSchemaKeyOSSSHKeyName).(string)
 	)
 
-	data, diagErr := resourceServersServerV1UpdateLoadData(ctx, dsClient, d, locationID, osID, configurationID, sshKeyName, forceDefaultPartitions)
+	data, diagErr := resourceServersServerV1UpdateLoadData(ctx, dsClient, d, locationID, osID, configurationID, sshKeyName)
 	if diagErr != nil {
 		return diagErr
 	}
@@ -559,7 +557,6 @@ type serversServerV1UpdateData struct {
 func resourceServersServerV1UpdateLoadData(
 	ctx context.Context, dsClient *servers.ServiceClient, d *schema.ResourceData,
 	locationID, osID, configurationID, sshKeyName string,
-	forceDefaultPartitions bool,
 ) (*serversServerV1UpdateData, diag.Diagnostics) {
 	operatingSystems, _, err := dsClient.OperatingSystems(ctx, servers.OperatingSystemsQuery{
 		LocationID: locationID,
@@ -583,19 +580,8 @@ func resourceServersServerV1UpdateLoadData(
 	}
 
 	var partitionsConfig servers.PartitionsConfig
-	switch {
-	case !d.HasChange(serversServerSchemaKeyOSPartitionsConfig) && partitionsConfigFromSchema.IsEmpty() && !forceDefaultPartitions: // in case of import and no changes
-		resourceOS, _, err := dsClient.OperatingSystemByResource(ctx, d.Id())
-		if err != nil {
-			return nil, diag.FromErr(fmt.Errorf(
-				"failed to read OS for server %s: %w", d.Id(), err,
-			))
-		}
-
-		partitionsConfig = resourceOS.PartitionsConfig
-
-	case !partitionsConfigFromSchema.IsEmpty() || os.Partitioning || forceDefaultPartitions:
-		if !os.Partitioning { // in case of configured partitions or forced default partitions
+	if !partitionsConfigFromSchema.IsEmpty() || os.Partitioning {
+		if !os.Partitioning { // in case of configured partitions
 			return nil, diag.FromErr(fmt.Errorf(
 				"%s %s does not support partitions config", objectOS, os.OSValue,
 			))
@@ -608,7 +594,7 @@ func resourceServersServerV1UpdateLoadData(
 			))
 		}
 
-		partitionsConfig, err = partitionsConfigFromSchema.CastToAPIPartitionsConfig(localDrives, os.DefaultPartitions, forceDefaultPartitions)
+		partitionsConfig, err = partitionsConfigFromSchema.CastToAPIPartitionsConfig(localDrives, os.DefaultPartitions)
 		if err != nil {
 			return nil, diag.FromErr(fmt.Errorf(
 				"failed to read partitions config input: %w", err,
@@ -646,45 +632,63 @@ func resourceServersServerV1UpdateValidatePreconditions(
 	needUserScript, needSSHKey bool,
 ) diag.Diagnostics {
 	var (
-		osConfigChanged = d.HasChanges(serversServerSchemaKeyOSID) ||
-			d.HasChange(serversServerSchemaKeyOSHostName) ||
-			d.HasChange(serversServerSchemaKeyOSSSHKey) ||
-			d.HasChange(serversServerSchemaKeyOSSSHKeyName) ||
-			d.HasChange(serversServerSchemaKeyOSPassword) ||
-			d.HasChange(serversServerSchemaKeyOSPartitionsConfig) ||
-			d.HasChange(serversServerSchemaKeyOSUserScript)
+		osID                           = d.Get(serversServerSchemaKeyOSID).(string)
+		forceUpdateAdditionalParams, _ = d.Get(serversServerSchemaForceUpdateAdditionalParams).(bool)
 
-		projectIDChanged       = d.HasChanges(serversServerSchemaKeyProjectID)
-		locationIDChanged      = d.HasChanges(serversServerSchemaKeyLocationID)
-		configurationIDChanged = d.HasChanges(serversServerSchemaKeyConfigurationID)
-		pricePlanNameChanged   = d.HasChanges(serversServerSchemaKeyPricePlanName)
-
-		osID = d.Get(serversServerSchemaKeyOSID).(string)
+		canUpdateAdditionalOSParams = forceUpdateAdditionalParams || d.HasChange(serversServerSchemaKeyOSID)
 	)
 
 	switch {
-	case !osConfigChanged:
+	case !d.HasChange(serversServerSchemaKeyOSID):
 		return diag.Errorf("can't update cause os configuration has not changed")
 
-	case projectIDChanged:
+	case d.HasChange(serversServerSchemaKeyProjectID):
 		prevID, _ := d.GetChange(serversServerSchemaKeyProjectID)
 
-		return diag.Errorf("can't update case project ID has changed, use previous id %s", prevID)
+		return diag.Errorf("can't update cause project ID has changed, use previous id %s", prevID)
 
-	case locationIDChanged:
+	case d.HasChange(serversServerSchemaKeyLocationID):
 		prevID, _ := d.GetChange(serversServerSchemaKeyLocationID)
 
-		return diag.Errorf("can't update case location ID has changed, use previous id %s", prevID)
+		return diag.Errorf("can't update cause location ID has changed, use previous id %s", prevID)
 
-	case configurationIDChanged:
+	case d.HasChange(serversServerSchemaKeyConfigurationID):
 		prevID, _ := d.GetChange(serversServerSchemaKeyConfigurationID)
 
-		return diag.Errorf("can't update case configuration ID has changed, use previous id %s", prevID)
+		return diag.Errorf("can't update cause configuration ID has changed, use previous id %s", prevID)
 
-	case pricePlanNameChanged:
+	case d.HasChange(serversServerSchemaKeyPricePlanName):
 		prevName, _ := d.GetChange(serversServerSchemaKeyPricePlanName)
 
-		return diag.Errorf("can't update case price plan ID has changed, use previous name %s", prevName)
+		return diag.Errorf("can't update cause price plan ID has changed, use previous name %s", prevName)
+
+	case !canUpdateAdditionalOSParams && d.HasChange(serversServerSchemaKeyOSHostName):
+		prevName, _ := d.GetChange(serversServerSchemaKeyOSHostName)
+
+		return diag.Errorf("can't update cause host name has changed, use previous name %s or %s flag", prevName, serversServerSchemaForceUpdateAdditionalParams)
+
+	case !canUpdateAdditionalOSParams && d.HasChange(serversServerSchemaKeyOSSSHKey):
+		prevKey, _ := d.GetChange(serversServerSchemaKeyOSSSHKey)
+
+		return diag.Errorf("can't update cause ssh key has changed, use previous key %s or %s flag", prevKey, serversServerSchemaForceUpdateAdditionalParams)
+
+	case !canUpdateAdditionalOSParams && d.HasChange(serversServerSchemaKeyOSSSHKeyName):
+		prevName, _ := d.GetChange(serversServerSchemaKeyOSSSHKeyName)
+
+		return diag.Errorf("can't update cause ssh key name has changed, use previous name %s or %s flag", prevName, serversServerSchemaForceUpdateAdditionalParams)
+
+	case !canUpdateAdditionalOSParams && d.HasChange(serversServerSchemaKeyOSPassword): // todo test 24H
+		prevPassword, _ := d.GetChange(serversServerSchemaKeyOSPassword)
+
+		return diag.Errorf("can't update cause os password has changed, use previous password %s or %s flag", prevPassword, serversServerSchemaForceUpdateAdditionalParams)
+
+	case !canUpdateAdditionalOSParams && d.HasChange(serversServerSchemaKeyOSPartitionsConfig):
+		return diag.Errorf("can't update cause partitions has changed or %s flag", serversServerSchemaForceUpdateAdditionalParams)
+
+	case !canUpdateAdditionalOSParams && d.HasChange(serversServerSchemaKeyOSUserScript):
+		prevScript, _ := d.GetChange(serversServerSchemaKeyOSUserScript)
+
+		return diag.Errorf("can't update cause user script has changed, use previous script %s or %s flag", prevScript, serversServerSchemaForceUpdateAdditionalParams)
 
 	case needUserScript && !os.ScriptAllowed:
 		return diag.FromErr(fmt.Errorf(
@@ -696,7 +700,7 @@ func resourceServersServerV1UpdateValidatePreconditions(
 			"%s %s does not allow SSH keys", objectOS, osID,
 		))
 
-	case partitions != nil && os.OSValue == "windows":
+	case partitions != nil && !os.Partitioning:
 		return diag.FromErr(fmt.Errorf(
 			"%s %s does not support partitions config", objectOS, os.OSValue,
 		))

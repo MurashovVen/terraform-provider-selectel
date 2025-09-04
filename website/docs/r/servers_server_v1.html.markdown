@@ -72,28 +72,28 @@ resource "selectel_servers_server_v1" "server_1" {
 
 * `location_id` - (Required) Pool where the server is located. 
 
-* `os_id` - (Required) Unique identifier of the operating system to install. Changing this installs new os on a new server.
+* `os_id` - (Required) Unique identifier of the operating system to install. Changing this installs new os on a new server. NOTE: installing new os will delete all data on the server.
 
 * `price_plan_name` - (Required) The name of the price plan.
 
-* `os_password` - (Optional) Password for the OS user. Changing this installs new os on a new server.
+* `os_password` - (Optional) Password for the OS user.
 
-* `user_script` - (Optional) A script to be run on the server after OS installation. Changing this installs new os on a new server.
+* `user_script` - (Optional) A script to be run on the server after OS installation. 
 
-* `ssh_key` - (Optional) The public SSH key to be added to the server. Changing this installs new os on a new server.
+* `ssh_key` - (Optional) The public SSH key to be added to the server. 
 
-* `ssh_key_name` - (Optional) The name of an existing SSH key to be added to the server. Changing this installs new os on a new server.
+* `ssh_key_name` - (Optional) The name of an existing SSH key to be added to the server. 
 
-* `partitions_config` - (Optional) Configuration for disk partitions. Changing this installs new os on a new server.
+* `partitions_config` - (Optional) Configuration for disk partitions.
   * `soft_raid_config` - (Optional) Configuration for software RAID.
     * `name` - (Required) Name of the RAID array.
     * `level` - (Required) RAID level.
     * `disk_type` - (Required) Type of disks to use in the RAID.
   * `disk_partitions` - (Optional) List of disk partitions.
     * `mount` - (Required) Mount point for the partition.
-    * `size` - (Optional) Size of the partition in MB. Use only size or size_percent.
+    * `size` - (Optional) Size of the partition in GB. Use only size or size_percent.
     * `size_percent` - (Optional) Size of the partition in percent. Use only size or size_percent.
-    * `raid` - (Required) The RAID array to create the partition on.
+    * `raid` - (Required) The RAID array name to create the partition on.
     * `fs_type` - (Optional) Filesystem type for the partition.
 
 * `public_subnet_id` - (Optional) ID of the public subnet to connect the server to. 
@@ -102,7 +102,9 @@ resource "selectel_servers_server_v1" "server_1" {
 
 * `is_server_chip` - (Optional) Flag to indicate if the configuration is a server chip. Defaults to `false`. 
 
-* `os_host_name` - (Optional) Hostname for the server. Changing this installs new os on a new server.
+* `os_host_name` - (Optional) Hostname for the server.
+
+* `force_update_additional_params` - (Optional) Enables update for additional os params (os_password, user_script, ssh_key, ssh_key_name, partitions_config, os_host_name) without changing os_id. NOTE: installing new os will delete all data on the server.
 
 ## Attributes Reference
 

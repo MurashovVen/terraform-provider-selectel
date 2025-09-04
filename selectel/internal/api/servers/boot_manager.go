@@ -107,9 +107,9 @@ type (
 		Match *PartitionConfigItemMatch `json:"match,omitempty"`
 
 		// For "partition"
-		Device   string `json:"device,omitempty"`
-		Size     int    `json:"size,omitempty"`
-		Priority *int   `json:"priority,omitempty"`
+		Device   string  `json:"device,omitempty"`
+		Size     float64 `json:"size,omitempty"`
+		Priority *int    `json:"priority,omitempty"`
 
 		// For "filesystem"
 		FSType string `json:"fstype,omitempty"`

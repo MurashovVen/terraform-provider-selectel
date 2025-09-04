@@ -5,31 +5,31 @@ import (
 )
 
 const (
-	serversServerSchemaKeyProjectID                 = "project_id"
-	serversServerSchemaKeyConfigurationID           = "configuration_id"
-	serversServerSchemaKeyLocationID                = "location_id"
-	serversServerSchemaKeyOSID                      = "os_id"
-	serversServerSchemaKeyPricePlanName             = "price_plan_name"
-	serversServerSchemaKeyIsServerChip              = "is_server_chip"
-	serversServerSchemaKeyPublicSubnetID            = "public_subnet_id"
-	serversServerSchemaKeyPrivateSubnet             = "private_subnet"
-	serversServerSchemaKeyOSUserScript              = "user_script"
-	serversServerSchemaKeyOSHostName                = "os_host_name"
-	serversServerSchemaKeyOSSSHKey                  = "ssh_key"
-	serversServerSchemaKeyOSSSHKeyName              = "ssh_key_name"
-	serversServerSchemaKeyOSPartitionsConfig        = "partitions_config"
-	serversServerSchemaKeySoftRaidConfig            = "soft_raid_config"
-	serversServerSchemaKeyDiskPartitions            = "disk_partitions"
-	serversServerSchemaKeyName                      = "name"
-	serversServerSchemaKeyLevel                     = "level"
-	serversServerSchemaKeyDiskType                  = "disk_type"
-	serversServerSchemaKeyMount                     = "mount"
-	serversServerSchemaKeySize                      = "size"
-	serversServerSchemaKeySizePercent               = "size_percent"
-	serversServerSchemaKeyRaid                      = "raid"
-	serversServerSchemaKeyFSType                    = "fs_type"
-	serversServerSchemaKeyOSPassword                = "os_password"
-	serversServerSchemaKeyDefaultPartitionsForceUse = "default_partitions_force_use"
+	serversServerSchemaKeyProjectID                = "project_id"
+	serversServerSchemaKeyConfigurationID          = "configuration_id"
+	serversServerSchemaKeyLocationID               = "location_id"
+	serversServerSchemaKeyOSID                     = "os_id"
+	serversServerSchemaKeyPricePlanName            = "price_plan_name"
+	serversServerSchemaKeyIsServerChip             = "is_server_chip"
+	serversServerSchemaKeyPublicSubnetID           = "public_subnet_id"
+	serversServerSchemaKeyPrivateSubnet            = "private_subnet"
+	serversServerSchemaKeyOSUserScript             = "user_script"
+	serversServerSchemaKeyOSHostName               = "os_host_name"
+	serversServerSchemaKeyOSSSHKey                 = "ssh_key"
+	serversServerSchemaKeyOSSSHKeyName             = "ssh_key_name"
+	serversServerSchemaKeyOSPartitionsConfig       = "partitions_config"
+	serversServerSchemaKeySoftRaidConfig           = "soft_raid_config"
+	serversServerSchemaKeyDiskPartitions           = "disk_partitions"
+	serversServerSchemaKeyName                     = "name"
+	serversServerSchemaKeyLevel                    = "level"
+	serversServerSchemaKeyDiskType                 = "disk_type"
+	serversServerSchemaKeyMount                    = "mount"
+	serversServerSchemaKeySize                     = "size"
+	serversServerSchemaKeySizePercent              = "size_percent"
+	serversServerSchemaKeyRaid                     = "raid"
+	serversServerSchemaKeyFSType                   = "fs_type"
+	serversServerSchemaKeyOSPassword               = "os_password"
+	serversServerSchemaForceUpdateAdditionalParams = "force_update_additional_params"
 )
 
 func resourceServersServerV1Schema() map[string]*schema.Schema {
@@ -108,7 +108,7 @@ func resourceServersServerV1Schema() map[string]*schema.Schema {
 									Required: true,
 								},
 								serversServerSchemaKeySize: {
-									Type:     schema.TypeInt,
+									Type:     schema.TypeFloat,
 									Optional: true,
 								},
 								serversServerSchemaKeySizePercent: {
@@ -149,7 +149,7 @@ func resourceServersServerV1Schema() map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Optional: true,
 		},
-		serversServerSchemaKeyDefaultPartitionsForceUse: {
+		serversServerSchemaForceUpdateAdditionalParams: {
 			Type:     schema.TypeBool,
 			Optional: true,
 		},
