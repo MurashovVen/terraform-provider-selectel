@@ -330,6 +330,7 @@ func (pc *PartitionsConfig) PickDefaultBootRaidName(localDrives serverslocal.Loc
 			}
 
 			currRatio = ld.SpeedRatio()
+
 			break
 		}
 
