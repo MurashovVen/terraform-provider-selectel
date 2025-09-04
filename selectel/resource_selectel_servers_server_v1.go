@@ -10,7 +10,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
 	"github.com/terraform-providers/terraform-provider-selectel/selectel/internal/api/servers"
 	waiters "github.com/terraform-providers/terraform-provider-selectel/selectel/waiters/servers"
 )
@@ -539,11 +538,6 @@ func resourceServersServerV1Update(ctx context.Context, d *schema.ResourceData, 
 	if err != nil {
 		return diag.FromErr(errUpdatingObject(objectServer, d.Id(), err))
 	}
-
-	// todo think about
-	// imported state (no partitions) -> update some data -> default partitions
-	// maybe need to get partitions from server before update
-	// same case for ssh key
 
 	return nil
 }
