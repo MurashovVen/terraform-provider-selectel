@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/terraform-providers/terraform-provider-selectel/selectel/internal/mutexkv"
 )
 
@@ -50,6 +51,7 @@ const (
 	objectRegistryToken             = "registry token"
 	objectSecret                    = "secret"
 	objectCertificate               = "certificate"
+	objectCloudBackupPlan           = "cloud-backup-plan"
 )
 
 // This is a global MutexKV for use within this plugin.
@@ -109,18 +111,20 @@ func Provider() *schema.Provider {
 			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
-			"selectel_domains_domain_v1":                dataSourceDomainsDomainV1(),
-			"selectel_domains_zone_v2":                  dataSourceDomainsZoneV2(),
-			"selectel_domains_rrset_v2":                 dataSourceDomainsRRSetV2(),
-			"selectel_dbaas_datastore_type_v1":          dataSourceDBaaSDatastoreTypeV1(),
-			"selectel_dbaas_available_extension_v1":     dataSourceDBaaSAvailableExtensionV1(),
-			"selectel_dbaas_flavor_v1":                  dataSourceDBaaSFlavorV1(),
-			"selectel_dbaas_configuration_parameter_v1": dataSourceDBaaSConfigurationParameterV1(),
-			"selectel_dbaas_prometheus_metric_token_v1": dataSourceDBaaSPrometheusMetricTokenV1(),
-			"selectel_mks_kubeconfig_v1":                dataSourceMKSKubeconfigV1(),
-			"selectel_mks_kube_versions_v1":             dataSourceMKSKubeVersionsV1(),
-			"selectel_mks_feature_gates_v1":             dataSourceMKSFeatureGatesV1(),
-			"selectel_mks_admission_controllers_v1":     dataSourceMKSAdmissionControllersV1(),
+			"selectel_domains_domain_v1":                      dataSourceDomainsDomainV1(),
+			"selectel_domains_zone_v2":                        dataSourceDomainsZoneV2(),
+			"selectel_domains_rrset_v2":                       dataSourceDomainsRRSetV2(),
+			"selectel_dbaas_datastore_type_v1":                dataSourceDBaaSDatastoreTypeV1(),
+			"selectel_dbaas_available_extension_v1":           dataSourceDBaaSAvailableExtensionV1(),
+			"selectel_dbaas_flavor_v1":                        dataSourceDBaaSFlavorV1(),
+			"selectel_dbaas_configuration_parameter_v1":       dataSourceDBaaSConfigurationParameterV1(),
+			"selectel_dbaas_prometheus_metric_token_v1":       dataSourceDBaaSPrometheusMetricTokenV1(),
+			"selectel_mks_kubeconfig_v1":                      dataSourceMKSKubeconfigV1(),
+			"selectel_mks_kube_versions_v1":                   dataSourceMKSKubeVersionsV1(),
+			"selectel_mks_feature_gates_v1":                   dataSourceMKSFeatureGatesV1(),
+			"selectel_mks_admission_controllers_v1":           dataSourceMKSAdmissionControllersV1(),
+			"selectel_cloudbackup_plan_v2":                    dataSourceCloudBackupPlanV2(),
+			"selectel_cloudblockstorage_backup_checkpoint_v2": dataSourceCloudBlockStorageBackupCheckpointV2(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"selectel_vpc_floatingip_v2":                            resourceVPCFloatingIPV2(),
