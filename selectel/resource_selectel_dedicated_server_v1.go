@@ -446,6 +446,8 @@ func resourceDedicatedServerV1Read(ctx context.Context, d *schema.ResourceData, 
 
 	_ = d.Set("os_id", os.UUID)
 
+	_ = d.Set("partitions_config", d.Get("partitions_config"))
+
 	return nil
 }
 
